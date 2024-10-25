@@ -1,6 +1,7 @@
 """Service connection management module"""
 
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
+from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -12,6 +13,7 @@ from repopal.models import (
     Organization
 )
 from repopal.utils.crypto import CredentialEncryption
+from repopal.core.health import HealthCheckFactory, HealthStatus, HealthCheckResult
 
 class ServiceConnectionManager:
     """Manages service connection lifecycle and operations"""
@@ -92,6 +94,43 @@ class ServiceConnectionManager:
         
         await self.db.delete(connection)
         await self.db.commit()
+
+    async def check_connection_health(
+        self,
+        connection_id: str
+    ) -> HealthCheckResult:
+        """Check health of a service connection"""
+        connection = await self.get_connection(connection_id)
+        if not connection:
+            raise ValueError(f"Connection {connection_id} not found")
+
+        # Get appropriate health checker
+        checker = HealthCheckFactory.get_checker(connection.service_type)
+        
+        # Run health check
+        result = await checker.check_health(connection_id)
+        
+        # Update connection status based on health
+        new_status = ConnectionStatus.ACTIVE if result.status == HealthStatus.HEALTHY else ConnectionStatus.ERROR
+        await self.update_connection_status(connection_id, new_status)
+        
+        return result
+
+    async def validate_connection_settings(
+        self,
+        service_type: ServiceType,
+        settings: Dict[str, Any]
+    ) -> None:
+        """Validate service-specific connection settings"""
+        if service_type == ServiceType.GITHUB_APP:
+            required = {"app_id", "installation_id"}
+            if not all(key in settings for key in required):
+                raise ValueError(f"Missing required GitHub App settings: {required}")
+                
+        elif service_type == ServiceType.SLACK:
+            required = {"team_id", "bot_id"}
+            if not all(key in settings for key in required):
+                raise ValueError(f"Missing required Slack settings: {required}")
 
     async def rotate_credentials(
         self,
