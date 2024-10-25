@@ -3,7 +3,7 @@
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 
-from redis import Redis
+from redis import Redis, from_url
 import json
 from prometheus_client import Counter, Histogram
 
@@ -11,6 +11,9 @@ from repopal.core.exceptions import PipelineStateError
 
 from repopal.core.types.pipeline import Pipeline, PipelineState
 from repopal.core.exceptions import PipelineNotFoundError
+
+# Redis client singleton
+redis_client = from_url("redis://localhost:6379/0")  # TODO: Get from config
 
 # Metrics
 PIPELINE_TRANSITIONS = Counter(
