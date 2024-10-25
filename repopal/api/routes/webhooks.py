@@ -1,9 +1,7 @@
 """Webhook routes for RepoPal"""
 
-from flask import jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app
 from typing import Dict, Any
-
-from .. import api
 from ..webhooks import WebhookHandlerFactory, GitHubWebhookHandler, SlackWebhookHandler
 from ..exceptions import WebhookError, RateLimitError
 from repopal.core.tasks import process_webhook_event
@@ -12,7 +10,10 @@ from repopal.core.tasks import process_webhook_event
 WebhookHandlerFactory.register('github', GitHubWebhookHandler)
 WebhookHandlerFactory.register('slack', SlackWebhookHandler)
 
-@api.route('/webhooks/<service>', methods=['POST'])
+# Create webhook blueprint
+webhooks_bp = Blueprint('webhooks', __name__)
+
+@webhooks_bp.route('/webhooks/<service>', methods=['POST'])
 def webhook(service: str) -> Dict[str, Any]:
     """Generic webhook handler for all services"""
     try:

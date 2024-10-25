@@ -7,8 +7,10 @@ from . import api
 from repopal.core.types.pipeline import PipelineState
 from repopal.core.pipeline import PipelineStateManager
 
-# Import routes from routes directory
-from .routes import webhooks  # noqa: F401
+# Import and register blueprints
+from .routes.webhooks import webhooks_bp
+
+api.register_blueprint(webhooks_bp)
 
 @api.route('/health', methods=['GET'])
 def health_check() -> Dict[str, Any]:
