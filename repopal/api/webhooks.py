@@ -16,7 +16,7 @@ from .exceptions import (
 from repopal.core.tasks import process_webhook_event
 from repopal.core.types.events import StandardizedEvent, RepositoryContext
 
-class GitHubHandler:
+class GitHubWebhookHandler:
     """Handles GitHub webhook events"""
     
     SUPPORTED_EVENTS = {
@@ -102,7 +102,7 @@ def github_webhook() -> Dict[str, Any]:
             raise RateLimitError("Rate limit exceeded")
             
         # Process webhook
-        handler = GitHubHandler(request.headers, request.json)
+        handler = GitHubWebhookHandler(request.headers, request.json)
         handler.validate_signature(request.data)
         event_type = handler.validate_event_type()
         
