@@ -4,7 +4,7 @@ from flask import jsonify, request, current_app
 from typing import Dict, Any
 
 from . import api
-from .webhooks import WebhookHandlerFactory, GitHubWebhookHandler
+from .webhooks import WebhookHandlerFactory, GitHubWebhookHandler, SlackWebhookHandler
 from .exceptions import WebhookError, RateLimitError
 from repopal.core.tasks import process_webhook_event
 from repopal.core.types.pipeline import PipelineState
