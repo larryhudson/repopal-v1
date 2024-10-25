@@ -1,6 +1,6 @@
 """Main API routes for RepoPal"""
 
-from flask import jsonify, request
+from flask import jsonify, request, current_app
 from typing import Dict, Any
 
 from . import api
@@ -18,7 +18,7 @@ def health_check() -> Dict[str, Any]:
 @api.route('/pipelines/<pipeline_id>', methods=['GET'])
 async def get_pipeline_status(pipeline_id: str) -> Dict[str, Any]:
     """Get current status of a pipeline"""
-    state_manager = PipelineStateManager(redis_client)
+    state_manager = PipelineStateManager(current_app.redis)
     pipeline = await state_manager.get_pipeline(pipeline_id)
     
     if not pipeline:
