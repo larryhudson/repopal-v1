@@ -13,6 +13,23 @@ class PipelineState(Enum):
     PROCESSING_RESULTS = "processing_results"
     COMPLETED = "completed"
     FAILED = "failed"
+    CLEANED = "cleaned"
+    EXPIRED = "expired"
+
+    def can_transition_to(self, new_state: 'PipelineState') -> bool:
+        """Check if transition to new state is valid"""
+        valid_transitions = {
+            PipelineState.RECEIVED: {PipelineState.PROCESSING, PipelineState.FAILED},
+            PipelineState.PROCESSING: {PipelineState.DISPATCHING, PipelineState.FAILED},
+            PipelineState.DISPATCHING: {PipelineState.EXECUTING, PipelineState.FAILED},
+            PipelineState.EXECUTING: {PipelineState.PROCESSING_RESULTS, PipelineState.FAILED},
+            PipelineState.PROCESSING_RESULTS: {PipelineState.COMPLETED, PipelineState.FAILED},
+            PipelineState.COMPLETED: {PipelineState.CLEANED},
+            PipelineState.FAILED: {PipelineState.CLEANED},
+            PipelineState.CLEANED: {PipelineState.EXPIRED},
+            PipelineState.EXPIRED: set()
+        }
+        return new_state in valid_transitions.get(self, set())
 
 @dataclass
 class Pipeline:

@@ -1,13 +1,29 @@
 """Pipeline state management for RepoPal"""
 
-from typing import Optional, Dict, Any
-from datetime import datetime
+from typing import Optional, Dict, Any, List
+from datetime import datetime, timedelta
 
 from redis import Redis
 import json
+from prometheus_client import Counter, Histogram
+
+from repopal.core.exceptions import PipelineStateError
 
 from repopal.core.types.pipeline import Pipeline, PipelineState
 from repopal.core.exceptions import PipelineNotFoundError
+
+# Metrics
+PIPELINE_TRANSITIONS = Counter(
+    'pipeline_state_transitions_total',
+    'Total number of pipeline state transitions',
+    ['from_state', 'to_state']
+)
+
+PIPELINE_DURATION = Histogram(
+    'pipeline_duration_seconds',
+    'Time taken for pipeline execution',
+    ['final_state']
+)
 
 class PipelineStateManager:
     """Manages pipeline state persistence and transitions"""
@@ -15,6 +31,7 @@ class PipelineStateManager:
     def __init__(self, redis_client: Redis):
         self.redis = redis_client
         self.key_prefix = "pipeline:"
+        self.ttl = timedelta(days=7)  # Default TTL for completed pipelines
 
     def _get_key(self, pipeline_id: str) -> str:
         """Get Redis key for pipeline"""
@@ -69,7 +86,21 @@ class PipelineStateManager:
         pipeline = await self.get_pipeline(pipeline_id)
         if not pipeline:
             raise PipelineNotFoundError(pipeline_id)
+
+        # Validate state transition
+        if not pipeline.current_state.can_transition_to(new_state):
+            raise PipelineStateError(
+                f"Invalid state transition from {pipeline.current_state} to {new_state}"
+            )
         
+        # Record metrics
+        PIPELINE_TRANSITIONS.labels(
+            from_state=pipeline.current_state.value,
+            to_state=new_state.value
+        ).inc()
+        
+        # Update pipeline
+        old_state = pipeline.current_state
         pipeline.current_state = new_state
         pipeline.current_task_id = task_id
         pipeline.updated_at = datetime.utcnow()
@@ -79,5 +110,78 @@ class PipelineStateManager:
         if metadata:
             pipeline.metadata.update(metadata)
         
+        # Record duration for terminal states
+        if new_state in {PipelineState.COMPLETED, PipelineState.FAILED}:
+            duration = (pipeline.updated_at - pipeline.created_at).total_seconds()
+            PIPELINE_DURATION.labels(final_state=new_state.value).observe(duration)
+        
+        # Set TTL for completed/failed pipelines
+        if new_state in {PipelineState.COMPLETED, PipelineState.FAILED}:
+            await self.redis.expire(
+                self._get_key(pipeline_id),
+                int(self.ttl.total_seconds())
+            )
+        
         await self.save_pipeline(pipeline)
         return pipeline
+    async def cleanup_expired_pipelines(self) -> List[str]:
+        """Clean up expired pipeline data"""
+        pattern = f"{self.key_prefix}*"
+        expired_ids = []
+        
+        # Scan for expired pipelines
+        cursor = 0
+        while True:
+            cursor, keys = await self.redis.scan(
+                cursor=cursor,
+                match=pattern,
+                count=100
+            )
+            
+            for key in keys:
+                pipeline_id = key.replace(self.key_prefix, "")
+                pipeline = await self.get_pipeline(pipeline_id)
+                
+                if pipeline and pipeline.current_state in {
+                    PipelineState.COMPLETED,
+                    PipelineState.FAILED
+                }:
+                    # Check if TTL has expired
+                    ttl = await self.redis.ttl(key)
+                    if ttl <= 0:
+                        await self.update_pipeline_state(
+                            pipeline_id,
+                            PipelineState.EXPIRED
+                        )
+                        await self.redis.delete(key)
+                        expired_ids.append(pipeline_id)
+            
+            if cursor == 0:
+                break
+                
+        return expired_ids
+
+    async def get_pipeline_metrics(self) -> Dict[str, Any]:
+        """Get metrics about pipeline states"""
+        metrics = {state.value: 0 for state in PipelineState}
+        pattern = f"{self.key_prefix}*"
+        
+        cursor = 0
+        while True:
+            cursor, keys = await self.redis.scan(
+                cursor=cursor,
+                match=pattern,
+                count=100
+            )
+            
+            for key in keys:
+                pipeline = await self.get_pipeline(
+                    key.replace(self.key_prefix, "")
+                )
+                if pipeline:
+                    metrics[pipeline.current_state.value] += 1
+            
+            if cursor == 0:
+                break
+                
+        return metrics
