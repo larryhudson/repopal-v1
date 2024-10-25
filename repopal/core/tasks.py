@@ -6,6 +6,7 @@ from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 
 from repopal.core.pipeline import PipelineStateManager, redis_client
+from repopal.core.types.events import StandardizedEvent
 from repopal.core.service_manager import ServiceConnectionManager
 from repopal.core.types.pipeline import PipelineState
 from repopal.core.exceptions import PipelineStateError
@@ -16,6 +17,44 @@ from repopal.core.pipeline import PipelineStateManager
 from repopal.core.service_manager import ServiceConnectionManager
 from repopal.core.types.pipeline import PipelineState
 from repopal.core.exceptions import PipelineStateError
+
+@shared_task(
+    bind=True,
+    max_retries=5,
+    default_retry_delay=30,  # 30 seconds
+    autoretry_for=(Exception,),
+    name="core.process_webhook_event"
+)
+async def process_webhook_event(
+    self,
+    event: StandardizedEvent
+) -> Dict[str, Any]:
+    """Process a webhook event and initialize pipeline"""
+    state_manager = PipelineStateManager(redis_client)
+    try:
+        # Create new pipeline for event
+        pipeline = await state_manager.create_pipeline(event)
+        
+        # Update state to processing
+        await state_manager.update_pipeline_state(
+            pipeline_id=pipeline.pipeline_id,
+            new_state=PipelineState.PROCESSING,
+            task_id=self.request.id,
+            metadata={
+                'event_id': event.event_id,
+                'event_type': event.event_type,
+                'repository': f"{event.repository.owner}/{event.repository.name}"
+            }
+        )
+        
+        return {
+            "status": "success",
+            "pipeline_id": pipeline.pipeline_id,
+            "event_id": event.event_id,
+            "event_type": event.event_type
+        }
+    except Exception as e:
+        self.retry(exc=e)
 
 @shared_task(
     bind=True,
