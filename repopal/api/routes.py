@@ -12,6 +12,7 @@ from repopal.core.pipeline import PipelineStateManager
 
 # Register webhook handlers
 WebhookHandlerFactory.register('github', GitHubWebhookHandler)
+WebhookHandlerFactory.register('slack', SlackWebhookHandler)
 
 @api.route('/webhooks/<service>', methods=['POST'])
 def webhook(service: str) -> Dict[str, Any]:

@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional, Type
 import hmac
 import hashlib
 from datetime import datetime
+import json
 
 from . import api
 from .exceptions import (
@@ -52,6 +53,90 @@ class WebhookHandlerFactory:
         if service not in cls._handlers:
             raise UnsupportedEventError(f"No handler for service: {service}")
         return cls._handlers[service](headers, payload)
+
+class SlackWebhookHandler(WebhookHandler):
+    """Handles Slack webhook events"""
+    
+    SUPPORTED_EVENTS = {
+        'url_verification',
+        'event_callback',
+    }
+    
+    def __init__(self, headers: Dict[str, str], payload: Dict[str, Any]):
+        self.headers = headers
+        self.payload = payload
+        
+    def validate_signature(self, request_data: bytes) -> None:
+        """Validate Slack webhook signature"""
+        timestamp = self.headers.get('X-Slack-Request-Timestamp')
+        signature = self.headers.get('X-Slack-Signature')
+        
+        if not timestamp or not signature:
+            raise InvalidSignatureError("Missing signature headers")
+            
+        # Verify timestamp to prevent replay attacks
+        msg = f"v0:{timestamp}:{request_data.decode('utf-8')}"
+        secret = current_app.config['SLACK_SIGNING_SECRET'].encode()
+        
+        # Generate expected signature
+        expected = 'v0=' + hmac.new(
+            secret,
+            msg.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        if not hmac.compare_digest(signature, expected):
+            raise InvalidSignatureError("Invalid signature")
+            
+    def validate_event_type(self) -> str:
+        """Validate and return event type"""
+        if self.payload.get('type') == 'url_verification':
+            return 'url_verification'
+            
+        event = self.payload.get('event', {})
+        event_type = event.get('type')
+        
+        if not event_type or event_type not in self.SUPPORTED_EVENTS:
+            raise UnsupportedEventError(f"Unsupported event type: {event_type}")
+            
+        return event_type
+        
+    def standardize_event(self) -> StandardizedEvent:
+        """Convert to standardized event format"""
+        event = self.payload.get('event', {})
+        
+        return StandardizedEvent(
+            event_id=self.payload['event_id'],
+            service='slack',
+            event_type=event.get('type', 'url_verification'),
+            repository=self._extract_repository_context(),
+            user_request=self._extract_user_request(),
+            created_at=datetime.fromtimestamp(float(self.headers['X-Slack-Request-Timestamp'])),
+            metadata=self._extract_metadata(),
+            raw_headers=self.headers,
+            raw_payload=self.payload
+        )
+        
+    def _extract_repository_context(self) -> Optional[RepositoryContext]:
+        """Extract repository information if present"""
+        # Repository info would need to be parsed from the message text
+        # or configured per Slack channel
+        return None
+        
+    def _extract_user_request(self) -> Optional[str]:
+        """Extract user request from message"""
+        event = self.payload.get('event', {})
+        return event.get('text')
+        
+    def _extract_metadata(self) -> Dict[str, Any]:
+        """Extract relevant metadata"""
+        event = self.payload.get('event', {})
+        return {
+            'team_id': self.payload.get('team_id'),
+            'channel': event.get('channel'),
+            'user': event.get('user'),
+            'event_time': self.payload.get('event_time')
+        }
 
 class GitHubWebhookHandler(WebhookHandler):
     """Handles GitHub webhook events"""
