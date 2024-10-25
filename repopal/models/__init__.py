@@ -20,5 +20,7 @@ __all__ = [
     'ServiceType',
     'ConnectionStatus', 
     'Repository',
-    'ServiceCredential'
+    'ServiceCredential',
+    'ConnectionEvent',
+    'ConnectionEventType'
 ]

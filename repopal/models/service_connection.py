@@ -41,6 +41,7 @@ class ServiceConnection(Base):
     organization = relationship("Organization", back_populates="service_connections")
     repositories = relationship("Repository", back_populates="service_connection", cascade="all, delete-orphan")
     credentials = relationship("ServiceCredential", back_populates="service_connection", cascade="all, delete-orphan")
+    events = relationship("ConnectionEvent", back_populates="service_connection", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<ServiceConnection {self.service_type} {self.organization_id}>"
