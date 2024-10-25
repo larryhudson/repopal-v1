@@ -9,8 +9,10 @@ from repopal.core.pipeline import PipelineStateManager
 
 # Import and register blueprints
 from .routes.webhooks import webhooks_bp
+from .routes.auth import auth_bp
 
 api.register_blueprint(webhooks_bp)
+api.register_blueprint(auth_bp)
 
 @api.route('/health', methods=['GET'])
 def health_check() -> Dict[str, Any]:
