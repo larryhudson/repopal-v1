@@ -79,3 +79,11 @@ class ServiceCredential(Base):
 
     def __repr__(self):
         return f"<ServiceCredential {self.credential_type} {self.service_connection_id}>"
+
+    def set_credential(self, encryption: 'CredentialEncryption', value: str) -> None:
+        """Encrypt and store a credential value"""
+        self.encrypted_data = encryption.encrypt(value)
+
+    def get_credential(self, encryption: 'CredentialEncryption') -> str:
+        """Decrypt and return the credential value"""
+        return encryption.decrypt(self.encrypted_data)

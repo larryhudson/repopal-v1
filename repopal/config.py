@@ -21,6 +21,10 @@ class Config:
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", SECRET_KEY)
     JWT_ACCESS_TOKEN_EXPIRES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 3600))
     SESSION_COOKIE_SECURE: bool = os.getenv("SESSION_COOKIE_SECURE", "True").lower() == "true"
+    
+    # Encryption
+    MASTER_ENCRYPTION_KEY: str = os.getenv("MASTER_ENCRYPTION_KEY", SECRET_KEY)
+    ENCRYPTION_SALT: bytes = os.getenv("ENCRYPTION_SALT", b"repopal").encode()
 
 class DevelopmentConfig(Config):
     """Development configuration."""
