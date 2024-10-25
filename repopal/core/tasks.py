@@ -1,7 +1,16 @@
 """Celery tasks for core pipeline operations"""
 
+from datetime import datetime
 from celery import shared_task
 from typing import Dict, Any, List
+from sqlalchemy.orm import Session
+
+from repopal.core.pipeline import PipelineStateManager, redis_client
+from repopal.core.service_manager import ServiceConnectionManager
+from repopal.core.types.pipeline import PipelineState
+from repopal.core.exceptions import PipelineStateError
+from repopal.utils.crypto import CredentialEncryption
+from repopal.extensions import db_session, credential_encryption
 
 from repopal.core.pipeline import PipelineStateManager
 from repopal.core.service_manager import ServiceConnectionManager
