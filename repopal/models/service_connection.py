@@ -5,6 +5,8 @@ import uuid
 from enum import Enum
 from typing import Dict, Any
 
+from repopal.utils.crypto import CredentialEncryption
+
 from sqlalchemy import Column, String, DateTime, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
