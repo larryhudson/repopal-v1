@@ -1,3 +1,44 @@
-.aider*
-.env
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
+env/
+.env
+.venv
+ENV/
+dist/
+build/
+*.egg-info/
+.eggs/
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Flask
+instance/
+.webassets-cache
+flask_session/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SQLAlchemy & Alembic
+*.db
+*.sqlite
+*.sqlite3
+migrations/versions/__pycache__/
+
+# Project specific
+.aider*
+logs/
+.coverage
+htmlcov/
+.pytest_cache/
