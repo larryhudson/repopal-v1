@@ -7,7 +7,12 @@ import hashlib
 from datetime import datetime
 
 from . import api
-from .exceptions import InvalidSignatureError, RateLimitError, UnsupportedEventError
+from .exceptions import (
+    WebhookError,
+    InvalidSignatureError,
+    RateLimitError,
+    UnsupportedEventError
+)
 from repopal.core.tasks import process_webhook_event
 from repopal.core.types.events import StandardizedEvent, RepositoryContext
 
