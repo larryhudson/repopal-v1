@@ -1,7 +1,8 @@
 """Webhook handlers for service events"""
 
+from abc import ABC, abstractmethod
 from flask import request, jsonify, current_app
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Type
 import hmac
 import hashlib
 from datetime import datetime
@@ -16,7 +17,43 @@ from .exceptions import (
 from repopal.core.tasks import process_webhook_event
 from repopal.core.types.events import StandardizedEvent, RepositoryContext
 
-class GitHubWebhookHandler:
+class WebhookHandler(ABC):
+    """Base class for webhook handlers"""
+    
+    @abstractmethod
+    def validate_signature(self, request_data: bytes) -> None:
+        """Validate webhook signature"""
+        pass
+        
+    @abstractmethod
+    def validate_event_type(self) -> str:
+        """Validate and return event type"""
+        pass
+        
+    @abstractmethod
+    def standardize_event(self) -> StandardizedEvent:
+        """Convert to standardized event format"""
+        pass
+
+class WebhookHandlerFactory:
+    """Factory for creating webhook handlers"""
+    
+    _handlers: Dict[str, Type[WebhookHandler]] = {}
+    
+    @classmethod
+    def register(cls, service: str, handler_class: Type[WebhookHandler]) -> None:
+        """Register a handler for a service"""
+        cls._handlers[service] = handler_class
+    
+    @classmethod
+    def create(cls, service: str, headers: Dict[str, str], 
+               payload: Dict[str, Any]) -> WebhookHandler:
+        """Create a handler instance for a service"""
+        if service not in cls._handlers:
+            raise UnsupportedEventError(f"No handler for service: {service}")
+        return cls._handlers[service](headers, payload)
+
+class GitHubWebhookHandler(WebhookHandler):
     """Handles GitHub webhook events"""
     
     SUPPORTED_EVENTS = {
