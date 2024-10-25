@@ -5,6 +5,9 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from enum import Enum
 
+from repopal.services.github import get_github_client
+from repopal.services.slack import get_slack_client
+
 class HealthStatus(str, Enum):
     """Health check status values"""
     HEALTHY = "healthy"
