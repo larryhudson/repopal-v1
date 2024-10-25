@@ -16,7 +16,6 @@ from repopal.extensions import db_session, credential_encryption
 from repopal.core.pipeline import PipelineStateManager
 from repopal.core.service_manager import ServiceConnectionManager
 from repopal.core.types.pipeline import PipelineState
-from repopal.core.exceptions import PipelineStateError
 
 @shared_task(
     bind=True,
@@ -34,7 +33,7 @@ async def process_webhook_event(
     try:
         # Create new pipeline for event
         pipeline = await state_manager.create_pipeline(event)
-        
+
         # Update state to processing
         await state_manager.update_pipeline_state(
             pipeline_id=pipeline.pipeline_id,
@@ -46,7 +45,7 @@ async def process_webhook_event(
                 'repository': f"{event.repository.owner}/{event.repository.name}"
             }
         )
-        
+
         return {
             "status": "success",
             "pipeline_id": pipeline.pipeline_id,
