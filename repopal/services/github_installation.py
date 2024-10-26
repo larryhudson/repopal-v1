@@ -50,6 +50,15 @@ def handle_installation_event(
         return None
         
     try:
+        current_app.logger.info(
+            "Creating organization for installation",
+            extra={
+                'account_login': account.get('login'),
+                'account_id': account.get('id'),
+                'account_type': account.get('type')
+            }
+        )
+        
         # Create organization first
         from repopal.models import Organization
         org = Organization(
@@ -62,6 +71,14 @@ def handle_installation_event(
         )
         db.add(org)
         db.flush()  # Get the org ID
+        
+        current_app.logger.info(
+            "Organization created successfully",
+            extra={
+                'org_id': str(org.id),
+                'org_name': org.name
+            }
+        )
 
         # Create service connection using manager
         connection = ServiceConnection(

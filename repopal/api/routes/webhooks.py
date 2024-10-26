@@ -128,15 +128,37 @@ def webhook(service: str) -> Dict[str, Any]:
                     'account': request.json.get('installation', {}).get('account', {}).get('login')
                 }
             )
-            # Initialize service connection manager
-            encryption = CredentialEncryption(current_app.config['SECRET_KEY'])
-            service_manager = ServiceConnectionManager(current_app.db.session, encryption)
-            
-            connection = handle_installation_event(
-                db=current_app.db.session,
-                payload=request.json,
-                service_manager=service_manager
-            )
+            try:
+                # Initialize service connection manager
+                encryption = CredentialEncryption(current_app.config['SECRET_KEY'])
+                service_manager = ServiceConnectionManager(current_app.db.session, encryption)
+                
+                connection = handle_installation_event(
+                    db=current_app.db.session,
+                    payload=request.json,
+                    service_manager=service_manager
+                )
+                
+                current_app.logger.info(
+                    "Installation event handled successfully",
+                    extra={
+                        'connection_id': str(connection.id) if connection else None,
+                        'installation_id': request.json.get('installation', {}).get('id'),
+                        'action': request.json.get('action')
+                    }
+                )
+            except Exception as e:
+                current_app.logger.error(
+                    "Failed to handle installation event",
+                    extra={
+                        'error': str(e),
+                        'error_type': type(e).__name__,
+                        'installation_id': request.json.get('installation', {}).get('id'),
+                        'action': request.json.get('action')
+                    },
+                    exc_info=True
+                )
+                raise
             if connection:
                 current_app.logger.info(
                     "Created service connection for installation",
