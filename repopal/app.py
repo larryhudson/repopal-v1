@@ -15,11 +15,16 @@ def create_app():
     app = Flask(__name__)
 
     # Configuration
+    # Database configuration
+    db_url = os.environ.get("DATABASE_URL", "sqlite:///repopal.db")
+    app.logger.info(f"Configuring database with URL: {db_url}")
+    
     app.config.update(
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev"),
         SESSION_TYPE="filesystem",
-        SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL", "sqlite:///repopal.db"),
+        SQLALCHEMY_DATABASE_URI=db_url,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        SQLALCHEMY_ECHO=True,  # Enable SQL query logging
         GITHUB_CLIENT_ID=os.environ.get("GITHUB_CLIENT_ID"),
         GITHUB_CLIENT_SECRET=os.environ.get("GITHUB_CLIENT_SECRET"),
         GITHUB_WEBHOOK_SECRET=os.environ.get("GITHUB_WEBHOOK_SECRET"),
