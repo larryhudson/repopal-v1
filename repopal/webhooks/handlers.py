@@ -166,6 +166,17 @@ class GitHubWebhookHandler(WebhookHandler):
         self.headers = headers
         self.payload = payload
         
+        current_app.logger.info(
+            "Initializing GitHub webhook handler",
+            extra={
+                'headers': {k: v for k, v in headers.items()},
+                'github_event': headers.get('X-GitHub-Event'),
+                'github_delivery': headers.get('X-GitHub-Delivery'),
+                'github_signature': headers.get('X-Hub-Signature-256'),
+                'content_type': headers.get('Content-Type')
+            }
+        )
+        
     def validate_signature(self, request_data: bytes) -> None:
         """Validate webhook signature"""
         signature = self.headers.get('X-Hub-Signature-256')
