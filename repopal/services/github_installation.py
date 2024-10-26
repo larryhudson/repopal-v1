@@ -8,7 +8,11 @@ from repopal.models.service_connection import (
     ConnectionStatus
 )
 
-def handle_installation_event(db: Session, payload: Dict[str, Any]) -> Optional[ServiceConnection]:
+def handle_installation_event(
+    db: Session,
+    payload: Dict[str, Any],
+    service_manager: "ServiceConnectionManager"
+) -> Optional[ServiceConnection]:
     """Handle GitHub App installation event"""
     from flask import current_app
     
@@ -37,11 +41,9 @@ def handle_installation_event(db: Session, payload: Dict[str, Any]) -> Optional[
         return None
         
     try:
-        # Create service connection
-        connection = ServiceConnection(
-            organization_id=None,  # TODO: Link to org once we have org management
+        # Create service connection using manager
+        connection = service_manager.create_connection(
             service_type=ServiceType.GITHUB_APP,
-            status=ConnectionStatus.ACTIVE,
             settings={
                 'installation_id': installation_id,
                 'account_id': account.get('id'),

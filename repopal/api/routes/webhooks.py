@@ -5,6 +5,8 @@ from flask import Blueprint, jsonify, request, current_app
 from typing import Dict, Any
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from repopal.core.service_manager import ServiceConnectionManager
+from repopal.utils.crypto import CredentialEncryption
 from repopal.webhooks.handlers import WebhookHandlerFactory, GitHubWebhookHandler, SlackWebhookHandler
 from ..exceptions import WebhookError, RateLimitError
 from repopal.core.tasks import process_webhook_event
@@ -126,9 +128,14 @@ def webhook(service: str) -> Dict[str, Any]:
                     'account': request.json.get('installation', {}).get('account', {}).get('login')
                 }
             )
+            # Initialize service connection manager
+            encryption = CredentialEncryption(current_app.config['SECRET_KEY'])
+            service_manager = ServiceConnectionManager(current_app.db.session, encryption)
+            
             connection = handle_installation_event(
                 db=current_app.db.session,
-                payload=request.json
+                payload=request.json,
+                service_manager=service_manager
             )
             if connection:
                 current_app.logger.info(
