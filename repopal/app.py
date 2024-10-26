@@ -4,34 +4,39 @@ from repopal.api import api
 import os
 from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables from .env
+def create_app():
+    """Application factory function"""
+    load_dotenv()  # Load environment variables from .env
 
-app = Flask(__name__)
+    app = Flask(__name__)
 
-# Configuration
-app.config.update(
-    SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
-    SESSION_TYPE='filesystem',
-    SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///repopal.db'),
-    SQLALCHEMY_TRACK_MODIFICATIONS=False,
-    GITHUB_CLIENT_ID=os.environ.get('GITHUB_CLIENT_ID'),
-    GITHUB_CLIENT_SECRET=os.environ.get('GITHUB_CLIENT_SECRET'),
-    GITHUB_APP_ID=os.environ.get('GITHUB_APP_ID')
-)
+    # Configuration
+    app.config.update(
+        SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
+        SESSION_TYPE='filesystem',
+        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///repopal.db'),
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        GITHUB_CLIENT_ID=os.environ.get('GITHUB_CLIENT_ID'),
+        GITHUB_CLIENT_SECRET=os.environ.get('GITHUB_CLIENT_SECRET'),
+        GITHUB_APP_ID=os.environ.get('GITHUB_APP_ID')
+    )
 
-# Initialize Flask-Session
-Session(app)
+    # Initialize Flask-Session
+    Session(app)
 
-# Initialize SQLAlchemy
-from repopal.models import db
-db.init_app(app)
+    # Initialize SQLAlchemy
+    from repopal.models import db
+    db.init_app(app)
 
-# Register the API blueprint
-app.register_blueprint(api, url_prefix='/api')
+    # Register the API blueprint
+    app.register_blueprint(api, url_prefix='/api')
 
-@app.route('/')
-def home():
-    return render_template('home.html')
+    @app.route('/')
+    def home():
+        return render_template('home.html')
+
+    return app
 
 if __name__ == '__main__':
+    app = create_app()
     app.run(debug=True)
