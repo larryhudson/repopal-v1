@@ -62,7 +62,7 @@ def process_webhook_event(
     autoretry_for=(Exception,),
     name="core.cleanup_expired_pipelines"
 )
-async def cleanup_expired_pipelines(self) -> Dict[str, Any]:
+def cleanup_expired_pipelines(self) -> Dict[str, Any]:
     """Periodic task to clean up expired pipelines"""
     state_manager = PipelineStateManager(redis_client)
     try:
@@ -140,7 +140,7 @@ def update_pipeline_state(
     autoretry_for=(Exception,),
     name="core.collect_pipeline_metrics"
 )
-async def collect_pipeline_metrics(self) -> Dict[str, Any]:
+def collect_pipeline_metrics(self) -> Dict[str, Any]:
     """Collect metrics about pipeline states"""
     state_manager = PipelineStateManager(redis_client)
     try:
