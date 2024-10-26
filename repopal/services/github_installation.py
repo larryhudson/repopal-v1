@@ -8,7 +8,7 @@ from repopal.models.service_connection import (
     ConnectionStatus
 )
 
-async def handle_installation_event(db: Session, payload: Dict[str, Any]) -> Optional[ServiceConnection]:
+def handle_installation_event(db: Session, payload: Dict[str, Any]) -> Optional[ServiceConnection]:
     """Handle GitHub App installation event"""
     
     # Extract installation data
