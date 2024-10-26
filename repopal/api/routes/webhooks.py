@@ -51,7 +51,7 @@ def webhook(service: str) -> Dict[str, Any]:
     try:
         # Log detailed incoming webhook information
         current_app.logger.info(
-            "Received webhook",
+            f"Received {service} webhook",
             extra={
                 'service': service,
                 'event_type': request.headers.get('X-GitHub-Event', 'unknown'),
@@ -59,9 +59,20 @@ def webhook(service: str) -> Dict[str, Any]:
                 'sender': request.json.get('sender', {}).get('login', 'unknown'),
                 'repository': request.json.get('repository', {}).get('full_name', 'unknown'),
                 'action': request.json.get('action', 'unknown'),
-                'installation_id': request.json.get('installation', {}).get('id', 'unknown'),
+                'installation_id': request.json.get('installation', {}).get('id', 'unknown')
+            }
+        )
+        
+        # Log raw request data for debugging
+        current_app.logger.debug(
+            "Webhook raw data",
+            extra={
                 'headers': dict(request.headers),
-                'payload': request.json
+                'payload': request.json,
+                'method': request.method,
+                'content_type': request.content_type,
+                'content_length': request.content_length,
+                'remote_addr': request.remote_addr
             }
         )
             

@@ -30,6 +30,14 @@ def create_app():
     # Initialize Flask-Session
     Session(app)
 
+    # Configure logging
+    import logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    app.logger.setLevel(logging.INFO)
+
 
     # Initialize SQLAlchemy
     from repopal.models import db
