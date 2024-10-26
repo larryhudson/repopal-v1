@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from repopal.utils.crypto import CredentialEncryption
 
 # Database setup
-engine = create_engine("postgresql://localhost/repopal")  # TODO: Get from config
+engine = create_engine("sqlite:///repopal.db")  # TODO: Get from config
 db_session = scoped_session(
     sessionmaker(
         autocommit=False,
