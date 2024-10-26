@@ -155,8 +155,21 @@ def webhook(service: str) -> Dict[str, Any]:
             },
         )
 
+        # Convert headers while preserving exact header names
+        headers = {k: v for k, v in request.headers.items()}
+        
+        current_app.logger.debug(
+            "Processing webhook headers",
+            extra={
+                'raw_headers': dict(request.headers),
+                'processed_headers': headers,
+                'github_event': headers.get('X-GitHub-Event'),
+                'content_type': headers.get('Content-Type')
+            }
+        )
+        
         handler = WebhookHandlerFactory.create(
-            service=service, headers=dict(request.headers), payload=request.json
+            service=service, headers=headers, payload=request.json
         )
 
         current_app.logger.info(
