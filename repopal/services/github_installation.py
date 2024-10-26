@@ -7,6 +7,7 @@ from repopal.models.service_connection import (
     ServiceType,
     ConnectionStatus
 )
+from repopal.core.service_manager import ServiceConnectionManager
 
 def handle_installation_event(
     db: Session,
