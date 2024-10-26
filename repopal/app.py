@@ -2,6 +2,9 @@ from flask import Flask, render_template
 from flask_session import Session
 from repopal.api import api
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env
 
 app = Flask(__name__)
 
@@ -9,6 +12,8 @@ app = Flask(__name__)
 app.config.update(
     SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
     SESSION_TYPE='filesystem',
+    SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///repopal.db'),
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
     GITHUB_CLIENT_ID=os.environ.get('GITHUB_CLIENT_ID'),
     GITHUB_CLIENT_SECRET=os.environ.get('GITHUB_CLIENT_SECRET'),
     GITHUB_APP_ID=os.environ.get('GITHUB_APP_ID')
