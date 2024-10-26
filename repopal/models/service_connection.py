@@ -6,7 +6,8 @@ from enum import Enum
 
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.types import JSON
 from sqlalchemy.orm import relationship
 
 from repopal.models.base import Base
@@ -43,7 +44,7 @@ class ServiceConnection(Base):
     status = Column(
         SQLEnum(ConnectionStatus), nullable=False, default=ConnectionStatus.PENDING
     )
-    settings = Column(JSONB, default=dict)
+    settings = Column(JSON, default=dict)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -78,8 +79,8 @@ class Repository(Base):
     )
     name = Column(String, nullable=False)
     github_id = Column(String, nullable=False)
-    settings = Column(JSONB, default=dict)
-    slack_channels = Column(JSONB, default=dict)
+    settings = Column(JSON, default=dict)
+    slack_channels = Column(JSON, default=dict)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -105,7 +106,7 @@ class ServiceCredential(Base):
         String, nullable=False
     )  # e.g., 'access_token', 'refresh_token'
     encrypted_data = Column(String, nullable=False)
-    metadata_json = Column(JSONB, default=dict)
+    metadata_json = Column(JSON, default=dict)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
