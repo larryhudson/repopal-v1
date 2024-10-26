@@ -9,7 +9,7 @@ from repopal.core.types.pipeline import PipelineState
 from repopal.core.pipeline import PipelineStateManager
 from repopal.api.routes.auth import login_required
 from repopal.utils.crypto import CredentialEncryption
-from repopal.models.service import ServiceConnection, Repository
+from repopal.models.service_connection import ServiceConnection, Repository
 
 # Create core blueprint
 core_bp = Blueprint('core', __name__)
