@@ -11,7 +11,7 @@ from repopal.core.service_manager import ServiceConnectionManager
 from repopal.core.types.pipeline import PipelineState
 from repopal.core.exceptions import PipelineStateError
 from repopal.utils.crypto import CredentialEncryption
-from repopal.extensions import db_session, credential_encryption
+from repopal.extensions import db, credential_encryption
 
 from repopal.core.pipeline import PipelineStateManager
 from repopal.core.service_manager import ServiceConnectionManager
@@ -87,7 +87,7 @@ def check_connection_health(
     connection_id: str
 ) -> Dict[str, Any]:
     """Check health of a service connection"""
-    service_manager = ServiceConnectionManager(db_session, credential_encryption)
+    service_manager = ServiceConnectionManager(db.session, credential_encryption)
     try:
         result = service_manager.check_connection_health(connection_id)
         return {
