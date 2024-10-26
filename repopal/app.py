@@ -2,10 +2,10 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask, render_template
-
-from flask_session import Session
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+
+from flask_session import Session
 from repopal.api import api
 
 
@@ -23,6 +23,7 @@ def create_app():
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         GITHUB_CLIENT_ID=os.environ.get("GITHUB_CLIENT_ID"),
         GITHUB_CLIENT_SECRET=os.environ.get("GITHUB_CLIENT_SECRET"),
+        GITHUB_WEBHOOK_SECRET=os.environ.get("GITHUB_WEBHOOK_SECRET"),
         GITHUB_APP_ID=os.environ.get("GITHUB_APP_ID"),
         GITHUB_APP_NAME=os.environ.get("GITHUB_APP_NAME"),
     )
@@ -35,7 +36,7 @@ def create_app():
         app=app,
         key_func=get_remote_address,
         default_limits=["200 per day", "50 per hour"],
-        storage_uri="memory://"
+        storage_uri="memory://",
     )
 
     # Initialize SQLAlchemy

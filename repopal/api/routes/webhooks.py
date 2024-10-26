@@ -49,6 +49,18 @@ def webhook(service: str) -> Dict[str, Any]:
         # Convert to standardized event
         event = handler.standardize_event()
         
+        # Handle installation events specially
+        if event_type == 'installation':
+            connection = await handle_installation_event(
+                db=current_app.db.session,
+                payload=request.json
+            )
+            if connection:
+                current_app.logger.info(
+                    "Created service connection for installation",
+                    extra={'connection_id': str(connection.id)}
+                )
+        
         # Queue for processing
         process_webhook_event.delay(event=event)
         
