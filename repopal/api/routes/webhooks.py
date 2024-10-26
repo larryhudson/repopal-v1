@@ -15,12 +15,38 @@ from sqlalchemy.orm import Session
 
 def init_webhook_handlers(app):
     """Initialize webhook handlers"""
-    app.logger.info("Registering webhook handlers")
+    app.logger.info("Starting webhook handler registration")
+    
+    # Register GitHub handler
+    app.logger.info("Registering GitHub webhook handler")
     WebhookHandlerFactory.register('github', GitHubWebhookHandler)
-    WebhookHandlerFactory.register('slack', SlackWebhookHandler)
-    app.logger.info("Webhook handlers registered successfully", 
+    app.logger.debug(
+        "GitHub handler registered",
         extra={
-            'handlers': list(WebhookHandlerFactory._handlers.keys())
+            'handler_class': GitHubWebhookHandler.__name__,
+            'supported_events': list(GitHubWebhookHandler.SUPPORTED_EVENTS)
+        }
+    )
+    
+    # Register Slack handler
+    app.logger.info("Registering Slack webhook handler")
+    WebhookHandlerFactory.register('slack', SlackWebhookHandler)
+    app.logger.debug(
+        "Slack handler registered",
+        extra={
+            'handler_class': SlackWebhookHandler.__name__,
+            'supported_events': list(SlackWebhookHandler.SUPPORTED_EVENTS)
+        }
+    )
+    
+    app.logger.info(
+        "Webhook handlers registered successfully", 
+        extra={
+            'registered_handlers': list(WebhookHandlerFactory._handlers.keys()),
+            'handler_classes': {
+                service: handler.__name__ 
+                for service, handler in WebhookHandlerFactory._handlers.items()
+            }
         }
     )
 
@@ -100,10 +126,28 @@ def webhook(service: str) -> Dict[str, Any]:
         )
             
         # Create and validate handler
+        current_app.logger.info(
+            f"Creating webhook handler for {service}",
+            extra={
+                'service': service,
+                'available_handlers': list(WebhookHandlerFactory._handlers.keys()),
+                'event_type': request.headers.get('X-GitHub-Event', 'unknown'),
+                'content_type': request.content_type
+            }
+        )
+        
         handler = WebhookHandlerFactory.create(
             service=service,
             headers=dict(request.headers),
             payload=request.json
+        )
+        
+        current_app.logger.info(
+            "Webhook handler created successfully",
+            extra={
+                'handler_class': handler.__class__.__name__,
+                'service': service
+            }
         )
         
         # Validate webhook
@@ -121,12 +165,20 @@ def webhook(service: str) -> Dict[str, Any]:
         
         # Handle installation events specially
         if event_type == 'installation':
+            installation_data = request.json.get('installation', {})
             current_app.logger.info(
                 "Processing installation event",
                 extra={
                     'action': request.json.get('action'),
-                    'installation_id': request.json.get('installation', {}).get('id'),
-                    'account': request.json.get('installation', {}).get('account', {}).get('login')
+                    'installation_id': installation_data.get('id'),
+                    'account': installation_data.get('account', {}).get('login'),
+                    'account_type': installation_data.get('account', {}).get('type'),
+                    'repository_selection': installation_data.get('repository_selection'),
+                    'app_id': request.json.get('app_id'),
+                    'permissions': installation_data.get('permissions'),
+                    'events': installation_data.get('events'),
+                    'repositories_count': len(request.json.get('repositories', [])),
+                    'handler_class': handler.__class__.__name__
                 }
             )
             try:
