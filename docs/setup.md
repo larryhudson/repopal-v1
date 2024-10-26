@@ -13,6 +13,8 @@
    - Homepage URL: `http://localhost:5001`
    - Webhook URL: `http://localhost:5001/api/webhooks/github`
    - Webhook secret: Generate a secure random string (see step 3 for how)
+   - Setup URL: `http://localhost:5001/api/auth/github/setup`
+   - Post installation callback URL: `http://localhost:5001/api/auth/github/installed`
    
 3. Permissions needed:
    - Repository permissions:
