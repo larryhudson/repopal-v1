@@ -64,9 +64,10 @@ def handle_installation_event(
         db.flush()  # Get the org ID
 
         # Create service connection using manager
-        connection = service_manager.create_connection(
+        connection = ServiceConnection(
             organization_id=org.id,
             service_type=ServiceType.GITHUB_APP,
+            status=ConnectionStatus.ACTIVE,
             settings={
                 'installation_id': installation_id,
                 'account_id': account.get('id'),
