@@ -14,6 +14,10 @@ class PipelineNotFoundError(PipelineError):
         self.pipeline_id = pipeline_id
         super().__init__(f"Pipeline not found: {pipeline_id}")
 
+class PipelineStateError(PipelineError):
+    """Raised when an invalid pipeline state transition is attempted"""
+    pass
+
 class ServiceConnectionError(CoreError):
     """Raised when there are issues with service connections"""
     pass
