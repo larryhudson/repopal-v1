@@ -2,11 +2,5 @@
 
 from . import api
 
-# Import and register blueprints
-from .routes.webhooks import webhooks_bp
-from .routes.auth import auth_bp
-from .routes.core import core_bp
-
-api.register_blueprint(webhooks_bp)
-api.register_blueprint(auth_bp)
-api.register_blueprint(core_bp)
+# Import route modules to register their endpoints
+from .routes import webhooks, auth, core
