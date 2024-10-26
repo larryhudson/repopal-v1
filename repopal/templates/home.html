@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RepoPal - AI-Powered Repository Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow">
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <h1 class="text-2xl font-bold text-gray-900">RepoPal</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <a href="{{ url_for('auth.github_login') }}" 
+                           class="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-900 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            Sign in with GitHub
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <main>
+            <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                        AI-Powered Repository Management
+                    </h2>
+                    <p class="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
+                        Automate code changes and repository tasks with natural language commands. 
+                        Let RepoPal handle the repetitive work while you focus on what matters.
+                    </p>
+                    <div class="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
+                        <div class="rounded-md shadow">
+                            <a href="{{ url_for('auth.github_login') }}" 
+                               class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-900 hover:bg-gray-700 md:py-4 md:text-lg md:px-10">
+                                Get Started
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature List -->
+                <div class="mt-24">
+                    <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                        <div class="pt-6">
+                            <div class="flow-root bg-white rounded-lg px-6 pb-8">
+                                <div class="-mt-6">
+                                    <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Natural Language Commands</h3>
+                                    <p class="mt-5 text-base text-gray-500">
+                                        Simply describe what you want to change in plain English. RepoPal understands your intent and makes the right code changes.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-6">
+                            <div class="flow-root bg-white rounded-lg px-6 pb-8">
+                                <div class="-mt-6">
+                                    <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Multi-Service Integration</h3>
+                                    <p class="mt-5 text-base text-gray-500">
+                                        Works with GitHub, Slack, and more. Trigger actions from anywhere and get notifications where you want them.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-6">
+                            <div class="flow-root bg-white rounded-lg px-6 pb-8">
+                                <div class="-mt-6">
+                                    <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Smart Automation</h3>
+                                    <p class="mt-5 text-base text-gray-500">
+                                        Automate common tasks like dependency updates, code formatting, and documentation generation with AI assistance.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
