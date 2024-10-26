@@ -15,7 +15,7 @@ from flask import (
 )
 
 # Create auth blueprint
-auth_bp = Blueprint("auth", __name__, template_folder="templates", url_prefix="/auth")
+auth_bp = Blueprint("auth", __name__, template_folder="../templates", url_prefix="/auth")
 
 
 def login_required(f):
