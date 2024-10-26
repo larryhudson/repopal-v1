@@ -3,9 +3,13 @@
 from flask import Blueprint, jsonify, current_app, render_template, session, request
 from typing import Dict, Any
 from github import Github
+from sqlalchemy.orm import Session
 
 from repopal.core.types.pipeline import PipelineState
 from repopal.core.pipeline import PipelineStateManager
+from repopal.api.routes.auth import login_required
+from repopal.utils.crypto import CredentialEncryption
+from repopal.models.service import ServiceConnection, Repository
 
 # Create core blueprint
 core_bp = Blueprint('core', __name__)
@@ -19,6 +23,7 @@ def health_check() -> Dict[str, Any]:
     })
 
 @core_bp.route('/install', methods=['GET'])
+@login_required
 def install():
     """Render the GitHub app installation page"""
     return render_template('install.html', 
@@ -26,6 +31,7 @@ def install():
                          app_id=current_app.config['GITHUB_APP_ID'])
 
 @core_bp.route('/install/callback', methods=['GET'])
+@login_required
 def install_callback():
     """Handle the GitHub app installation callback"""
     installation_id = request.args.get('installation_id')
@@ -39,18 +45,67 @@ def install_callback():
     g = Github(access_token)
     installation = g.get_installation(int(installation_id))
 
-    # Store the installation details in the database or session
-    # For example:
-    # installation_repo = InstallationRepository(
-    #     user_id=session['user_id'],
-    #     installation_id=installation.id,
-    #     repository_id=installation.repository.id,
-    #     repository_name=installation.repository.name
-    # )
-    # db.session.add(installation_repo)
-    # db.session.commit()
+    try:
+        # Create service connection
+        connection = ServiceConnection(
+            user_id=session['user_id'],
+            service_type='github_app',
+            settings={
+                'installation_id': installation.id
+            }
+        )
+        
+        # Encrypt and store access token
+        encryption = CredentialEncryption(current_app.config['MASTER_KEY'])
+        connection.credentials = encryption.encrypt(access_token)
+        
+        # Store connection
+        db = current_app.db.session
+        db.add(connection)
+        
+        # Store repository info
+        for repo in installation.repositories:
+            repository = Repository(
+                service_connection_id=connection.id,
+                github_id=repo.id,
+                name=repo.full_name,
+                settings={
+                    'default_branch': repo.default_branch,
+                    'visibility': repo.visibility
+                }
+            )
+            db.add(repository)
+        
+        db.commit()
+        
+        # Log audit event
+        current_app.logger.info(
+            "GitHub app installed",
+            extra={
+                'user_id': session['user_id'],
+                'installation_id': installation.id,
+                'repository_count': len(installation.repositories)
+            }
+        )
 
-    return jsonify({"message": "GitHub app installed successfully"})
+        return jsonify({
+            "message": "GitHub app installed successfully",
+            "connection_id": connection.id
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(
+            "GitHub app installation failed",
+            extra={
+                'user_id': session['user_id'],
+                'error': str(e)
+            }
+        )
+        return jsonify({
+            "error": "Failed to install GitHub app",
+            "details": str(e)
+        }), 500
 
 @core_bp.route('/pipelines/<pipeline_id>', methods=['GET'])
 async def get_pipeline_status(pipeline_id: str) -> Dict[str, Any]:
