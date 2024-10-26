@@ -261,8 +261,9 @@ def webhook(service: str) -> Dict[str, Any]:
                 encryption = CredentialEncryption(current_app.config["SECRET_KEY"])
 
                 current_app.logger.info("Creating service manager instance")
+                from repopal.extensions import db
                 service_manager = ServiceConnectionManager(
-                    current_app.db.session, encryption
+                    db.session, encryption
                 )
 
                 current_app.logger.info("Calling handle_installation_event")

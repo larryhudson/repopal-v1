@@ -1,18 +1,10 @@
 """Flask extensions and shared instances"""
 
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy import create_engine
+from flask_sqlalchemy import SQLAlchemy
 from repopal.utils.crypto import CredentialEncryption
 
-# Database setup
-engine = create_engine("sqlite:///repopal.db")  # TODO: Get from config
-db_session = scoped_session(
-    sessionmaker(
-        autocommit=False,
-        autoflush=False,
-        bind=engine
-    )
-)
+# Initialize Flask-SQLAlchemy
+db = SQLAlchemy()
 
 # Credential encryption setup
 credential_encryption = CredentialEncryption(
