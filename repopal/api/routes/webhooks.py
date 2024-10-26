@@ -59,11 +59,20 @@ def init_webhook_handlers(app):
 
 import logging
 
-# Configure logging to show extra fields
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(extra)s'
-)
+class SafeFormatter(logging.Formatter):
+    """Custom formatter that safely handles missing extras"""
+    def format(self, record):
+        # Get extras if they exist
+        extras = getattr(record, 'extra', {})
+        # Add formatted extras to the record if present
+        if extras:
+            record.extras_str = ' - ' + ' - '.join(f'{k}={v}' for k, v in extras.items())
+        else:
+            record.extras_str = ''
+        return super().format(record)
+
+# Configure root logger
+logging.basicConfig(level=logging.DEBUG)
 
 # Initialize rate limiter
 limiter = Limiter(
@@ -73,16 +82,20 @@ limiter = Limiter(
     strategy="fixed-window",
 )
 
-# Ensure webhook logger shows extra fields
+# Configure webhook logger
 logger = logging.getLogger('repopal.webhooks')
 logger.setLevel(logging.DEBUG)
 
-# Create a formatter that includes extra fields
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s - extra_fields=%(extra)s'
+# Remove any existing handlers
+for handler in logger.handlers[:]:
+    logger.removeHandler(handler)
+
+# Create a formatter that safely includes extra fields
+formatter = SafeFormatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s%(extras_str)s'
 )
 
-# Add a handler with the new formatter
+# Add console handler with safe formatter
 handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 logger.addHandler(handler)
