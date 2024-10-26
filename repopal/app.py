@@ -44,8 +44,10 @@ def create_app():
     from flask_limiter import Limiter
     from flask_limiter.util import get_remote_address
 
-    # Initialize SQLAlchemy
+    # Initialize SQLAlchemy and create tables
     db.init_app(app)
+    with app.app_context():
+        db.create_all()
 
     # Initialize rate limiter
     limiter = Limiter(
