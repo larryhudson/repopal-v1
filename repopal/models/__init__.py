@@ -24,3 +24,9 @@ __all__ = [
     'ConnectionEvent',
     'ConnectionEventType'
 ]
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+from .service_connection import ServiceConnection, Repository
+from .service import *
