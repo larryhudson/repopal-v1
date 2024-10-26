@@ -54,19 +54,28 @@ def github_callback():
         return jsonify({"error": "No code provided"}), 400
 
     # Exchange code for access token
+    token_request_data = {
+        "client_id": current_app.config["GITHUB_CLIENT_ID"],
+        "client_secret": current_app.config["GITHUB_CLIENT_SECRET"],
+        "code": code,
+    }
+    
+    current_app.logger.info(f"Exchanging code for token with data: {token_request_data}")
+    
     response = requests.post(
         "https://github.com/login/oauth/access_token",
         headers={"Accept": "application/json"},
-        data={
-            "client_id": current_app.config["GITHUB_CLIENT_ID"],
-            "client_secret": current_app.config["GITHUB_CLIENT_SECRET"],
-            "code": code,
-        },
+        data=token_request_data,
     )
 
     token_data = response.json()
+    current_app.logger.info(f"Token exchange response status: {response.status_code}")
+    current_app.logger.debug(f"Token exchange response data: {token_data}")
+    
     if "access_token" not in token_data:
-        return jsonify({"error": "Failed to get access token"}), 400
+        error_msg = f"Failed to get access token. Error: {token_data.get('error_description', token_data)}"
+        current_app.logger.error(error_msg)
+        return jsonify({"error": error_msg}), 400
 
     # Get user info
     user_response = requests.get(
