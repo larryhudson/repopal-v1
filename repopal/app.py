@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_session import Session
 from repopal.api import api
 import os
@@ -21,8 +21,8 @@ Session(app)
 app.register_blueprint(api, url_prefix='/api')
 
 @app.route('/')
-def hello():
-    return 'Welcome to RepoPal!'
+def home():
+    return render_template('home.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
