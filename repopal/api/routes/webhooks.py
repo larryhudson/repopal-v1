@@ -10,7 +10,8 @@ from repopal.utils.crypto import CredentialEncryption
 from repopal.webhooks.handlers import WebhookHandlerFactory, GitHubWebhookHandler, SlackWebhookHandler
 from ..exceptions import WebhookError, RateLimitError
 from repopal.core.tasks import process_webhook_event
-from repopal.services.github_installation import handle_installation_event
+from repopal.models.service_connection import ServiceConnection, ServiceType, ConnectionStatus
+from sqlalchemy.orm import Session
 
 def init_webhook_handlers(app):
     """Initialize webhook handlers"""
@@ -133,9 +134,8 @@ def webhook(service: str) -> Dict[str, Any]:
                 encryption = CredentialEncryption(current_app.config['SECRET_KEY'])
                 service_manager = ServiceConnectionManager(current_app.db.session, encryption)
                 
-                connection = handle_installation_event(
+                connection = handler.handle_installation_event(
                     db=current_app.db.session,
-                    payload=request.json,
                     service_manager=service_manager
                 )
                 
