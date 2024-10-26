@@ -13,4 +13,4 @@ from flask import Blueprint
 api = Blueprint('api', __name__)
 
 # Import routes after blueprint creation to avoid circular imports
-from . import routes, auth, webhooks
+from . import routes
