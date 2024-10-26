@@ -1,6 +1,46 @@
 # RepoPal Setup Instructions
 
-## 1. GitHub OAuth App Setup
+## 1. GitHub App Setup
+
+1. Go to GitHub Developer Settings:
+   - Log into GitHub
+   - Click your profile photo
+   - Go to Settings > Developer settings > GitHub Apps
+   - Click "New GitHub App"
+
+2. Register the GitHub App:
+   - GitHub App name: `RepoPal`
+   - Homepage URL: `http://localhost:5001`
+   - Webhook URL: `http://localhost:5001/api/webhooks/github`
+   - Webhook secret: Generate a secure random string (see step 3 for how)
+   
+3. Permissions needed:
+   - Repository permissions:
+     - Contents: Read & write
+     - Issues: Read & write
+     - Pull requests: Read & write
+     - Workflows: Read & write
+   - Organization permissions:
+     - Members: Read-only
+   - Account permissions:
+     - Email addresses: Read-only
+
+4. Subscribe to events:
+   - Pull request
+   - Push
+   - Issues
+   - Issue comment
+   - Pull request review
+   - Pull request review comment
+
+5. After creation, you'll need:
+   - App ID (shown on the app's page)
+   - Generate a private key (download and save securely)
+   - Webhook secret (from step 2)
+
+Save these values - you'll need them for environment variables.
+
+## 2. GitHub OAuth App Setup
 
 1. Go to GitHub Developer Settings:
    - Log into GitHub
@@ -40,6 +80,11 @@ DATABASE_URL=sqlite:///repopal.db
 
 # Redis
 REDIS_URL=redis://localhost:6379/0
+
+# GitHub App
+GITHUB_APP_ID=your-app-id
+GITHUB_APP_PRIVATE_KEY=path/to/your/private-key.pem
+GITHUB_WEBHOOK_SECRET=your-webhook-secret
 ```
 
 Replace the placeholder values with your actual credentials.
