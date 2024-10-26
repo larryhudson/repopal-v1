@@ -82,7 +82,7 @@ def webhook(service: str) -> Dict[str, Any]:
         
         # Handle installation events specially
         if event_type == 'installation':
-            connection = await handle_installation_event(
+            connection = handle_installation_event(
                 db=current_app.db.session,
                 payload=request.json
             )

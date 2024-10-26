@@ -35,6 +35,6 @@ def handle_installation_event(db: Session, payload: Dict[str, Any]) -> Optional[
     )
     
     db.add(connection)
-    await db.commit()
+    db.commit()
     
     return connection
