@@ -12,10 +12,38 @@ from repopal.core.tasks import process_webhook_event
 WebhookHandlerFactory.register('github', GitHubWebhookHandler)
 WebhookHandlerFactory.register('slack', SlackWebhookHandler)
 
-# Create webhook blueprint
+# Initialize rate limiter
+limiter = Limiter(
+    key_func=get_remote_address,
+    storage_uri="redis://localhost:6379/0",
+    default_limits=["1000 per hour"],
+    strategy="fixed-window"
+)
+
+# Create webhook blueprint with monitoring
 webhooks_bp = Blueprint('webhooks', __name__)
 
+# Webhook metrics
+webhook_metrics = {
+    'processed': 0,
+    'errors': 0,
+    'processing_time': []
+}
+
+@webhooks_bp.route('/webhooks/health')
+def health():
+    """Health check endpoint for webhooks"""
+    return jsonify({
+        'status': 'healthy',
+        'metrics': {
+            'processed': webhook_metrics['processed'],
+            'errors': webhook_metrics['errors'],
+            'avg_processing_time': sum(webhook_metrics['processing_time'][-100:]) / len(webhook_metrics['processing_time'][-100:]) if webhook_metrics['processing_time'] else 0
+        }
+    })
+
 @webhooks_bp.route('/webhooks/<service>', methods=['POST'])
+@limiter.limit("100/minute")
 def webhook(service: str) -> Dict[str, Any]:
     """Generic webhook handler for all services"""
     try:
@@ -61,8 +89,19 @@ def webhook(service: str) -> Dict[str, Any]:
                     extra={'connection_id': str(connection.id)}
                 )
         
+        # Record start time
+        start_time = time.time()
+        
         # Queue for processing
         process_webhook_event.delay(event=event)
+        
+        # Update metrics
+        webhook_metrics['processed'] += 1
+        webhook_metrics['processing_time'].append(time.time() - start_time)
+        
+        # Trim processing time history
+        if len(webhook_metrics['processing_time']) > 1000:
+            webhook_metrics['processing_time'] = webhook_metrics['processing_time'][-1000:]
         
         # Log success
         current_app.logger.info(
@@ -91,6 +130,9 @@ def webhook(service: str) -> Dict[str, Any]:
         return jsonify({"error": str(e)}), e.status_code
         
     except Exception as e:
+        # Update error metrics
+        webhook_metrics['errors'] += 1
+        
         current_app.logger.error(
             "Webhook processing failed",
             extra={
