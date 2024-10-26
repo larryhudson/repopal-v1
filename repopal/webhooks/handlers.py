@@ -71,6 +71,14 @@ class SlackWebhookHandler(WebhookHandler):
     def __init__(self, headers: Dict[str, str], payload: Dict[str, Any]):
         self.headers = headers
         self.payload = payload
+        current_app.logger.debug(
+            "Initialized GitHub webhook handler",
+            extra={
+                'headers': headers,
+                'event_type': headers.get('X-GitHub-Event'),
+                'delivery': headers.get('X-GitHub-Delivery')
+            }
+        )
         
     def validate_signature(self, request_data: bytes) -> None:
         """Validate Slack webhook signature"""
@@ -176,9 +184,15 @@ class GitHubWebhookHandler(WebhookHandler):
             
     def validate_event_type(self) -> str:
         """Validate and return event type"""
-        event_type = self.headers.get('X-GitHub-Event', 'ping')
+        event_type = self.headers.get('X-GitHub-Event')
+        if not event_type:
+            current_app.logger.error("No X-GitHub-Event header found", extra={'headers': self.headers})
+            raise UnsupportedEventError("Missing X-GitHub-Event header")
+            
         if event_type not in self.SUPPORTED_EVENTS and event_type != 'ping':
             raise UnsupportedEventError(f"Unsupported event type: {event_type}")
+            
+        current_app.logger.debug(f"Validated GitHub event type: {event_type}")
         return event_type
         
     def standardize_event(self) -> StandardizedEvent:
