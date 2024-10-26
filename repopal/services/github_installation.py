@@ -23,6 +23,14 @@ def handle_installation_event(
     account = installation.get('account', {})
     action = payload.get('action')
     repositories = payload.get('repositories', [])
+
+    # Only handle new installations
+    if action != 'created':
+        current_app.logger.info(
+            f"Ignoring installation {action} event",
+            extra={'installation_id': installation_id}
+        )
+        return None
     
     current_app.logger.info(
         "Handling installation event",
@@ -42,8 +50,22 @@ def handle_installation_event(
         return None
         
     try:
+        # Create organization first
+        from repopal.models import Organization
+        org = Organization(
+            name=account.get('login'),
+            github_org_id=str(account.get('id')),
+            settings={
+                'type': account.get('type'),
+                'url': account.get('url')
+            }
+        )
+        db.add(org)
+        db.flush()  # Get the org ID
+
         # Create service connection using manager
         connection = service_manager.create_connection(
+            organization_id=org.id,
             service_type=ServiceType.GITHUB_APP,
             settings={
                 'installation_id': installation_id,
