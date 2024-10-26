@@ -11,10 +11,35 @@
 2. Register the GitHub App:
    - GitHub App name: `RepoPal`
    - Homepage URL: `http://localhost:5001`
-   - Webhook URL: `http://localhost:5001/api/webhooks/github`
+   - Webhook URL: Your Smee proxy URL (see "Local Webhook Setup" below)
    - Webhook secret: Generate a secure random string (see step 3 for how)
    - Setup URL: `http://localhost:5001/api/auth/github/setup`
    - Post installation callback URL: `http://localhost:5001/api/auth/github/installed`
+
+## Local Webhook Setup with Smee
+
+For local development, you'll need to use Smee.io to receive GitHub webhooks:
+
+1. Install the Smee client:
+   ```bash
+   npm install --global smee-client
+   ```
+
+2. Go to [smee.io](https://smee.io) and click "Start a new channel"
+
+3. Copy the webhook URL (looks like `https://smee.io/abc123...`)
+
+4. Add to your `.env`:
+   ```bash
+   WEBHOOK_PROXY_URL=your-smee-url
+   ```
+
+5. Start the Smee client:
+   ```bash
+   smee --url https://smee.io/your-channel --target http://localhost:5001/api/webhooks/github
+   ```
+
+Keep this running in a separate terminal while developing.
    
 3. Permissions needed:
    - Repository permissions:
