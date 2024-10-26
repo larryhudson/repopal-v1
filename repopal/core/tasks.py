@@ -24,7 +24,7 @@ from repopal.core.types.pipeline import PipelineState
     autoretry_for=(Exception,),
     name="core.process_webhook_event"
 )
-async def process_webhook_event(
+def process_webhook_event(
     self,
     event: StandardizedEvent
 ) -> Dict[str, Any]:
@@ -32,10 +32,10 @@ async def process_webhook_event(
     state_manager = PipelineStateManager(redis_client)
     try:
         # Create new pipeline for event
-        pipeline = await state_manager.create_pipeline(event)
+        pipeline = state_manager.create_pipeline(event)
 
         # Update state to processing
-        await state_manager.update_pipeline_state(
+        state_manager.update_pipeline_state(
             pipeline_id=pipeline.pipeline_id,
             new_state=PipelineState.PROCESSING,
             task_id=self.request.id,
@@ -66,7 +66,7 @@ async def cleanup_expired_pipelines(self) -> Dict[str, Any]:
     """Periodic task to clean up expired pipelines"""
     state_manager = PipelineStateManager(redis_client)
     try:
-        expired_ids = await state_manager.cleanup_expired_pipelines()
+        expired_ids = state_manager.cleanup_expired_pipelines()
         return {
             "status": "success",
             "expired_count": len(expired_ids),
@@ -82,14 +82,14 @@ async def cleanup_expired_pipelines(self) -> Dict[str, Any]:
     autoretry_for=(Exception,),
     name="core.check_connection_health"
 )
-async def check_connection_health(
+def check_connection_health(
     self,
     connection_id: str
 ) -> Dict[str, Any]:
     """Check health of a service connection"""
     service_manager = ServiceConnectionManager(db_session, credential_encryption)
     try:
-        result = await service_manager.check_connection_health(connection_id)
+        result = service_manager.check_connection_health(connection_id)
         return {
             "status": "success",
             "connection_id": connection_id,
@@ -117,7 +117,7 @@ def update_pipeline_state(
     """Update pipeline state with retries"""
     state_manager = PipelineStateManager(redis_client)
     try:
-        pipeline = await state_manager.update_pipeline_state(
+        pipeline = state_manager.update_pipeline_state(
             pipeline_id=pipeline_id,
             new_state=PipelineState(new_state),
             task_id=task_id,
@@ -144,7 +144,7 @@ async def collect_pipeline_metrics(self) -> Dict[str, Any]:
     """Collect metrics about pipeline states"""
     state_manager = PipelineStateManager(redis_client)
     try:
-        metrics = await state_manager.get_pipeline_metrics()
+        metrics = state_manager.get_pipeline_metrics()
         return {
             "status": "success",
             "timestamp": datetime.utcnow().isoformat(),
