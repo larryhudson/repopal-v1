@@ -34,6 +34,7 @@ celerybeat.pid
 *.db
 *.sqlite
 *.sqlite3
+migrations/versions/
 migrations/versions/__pycache__/
 
 # Project specific
