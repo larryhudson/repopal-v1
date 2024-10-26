@@ -39,10 +39,22 @@ def create_app():
     app.logger.setLevel(logging.INFO)
 
 
-    # Initialize SQLAlchemy
-    from repopal.models import db
+    # Initialize extensions
+    from repopal.extensions import db, credential_encryption
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
 
+    # Initialize SQLAlchemy
     db.init_app(app)
+
+    # Initialize rate limiter
+    limiter = Limiter(
+        app=app,
+        key_func=get_remote_address,
+        storage_uri="redis://localhost:6379/0",
+        default_limits=["1000 per hour"],
+        strategy="fixed-window",
+    )
 
     # Register blueprints
     app.register_blueprint(api, url_prefix="/api")
