@@ -268,7 +268,7 @@ def webhook(service: str) -> Dict[str, Any]:
 
                 current_app.logger.info("Calling handle_installation_event")
                 connection = handler.handle_installation_event(
-                    db=current_app.db.session, service_manager=service_manager
+                    db=db.session, service_manager=service_manager
                 )
 
                 current_app.logger.info(
