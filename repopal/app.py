@@ -1,11 +1,9 @@
 from flask import Flask, render_template
 from flask_session import Session
-from flask_migrate import Migrate
 from repopal.api import api
 import os
 
 app = Flask(__name__)
-migrate = Migrate()
 
 # Configuration
 app.config.update(
@@ -19,10 +17,9 @@ app.config.update(
 # Initialize Flask-Session
 Session(app)
 
-# Initialize Flask-Migrate
+# Initialize SQLAlchemy
 from repopal.models import db
 db.init_app(app)
-migrate.init_app(app, db)
 
 # Register the API blueprint
 app.register_blueprint(api, url_prefix='/api')
