@@ -230,12 +230,24 @@ class GitHubWebhookHandler(WebhookHandler):
         """Handle GitHub App installation event"""
         from flask import current_app
         
+        current_app.logger.info("Starting GitHub installation event handling")
+        
         # Extract installation data
         installation = self.payload.get('installation', {})
         installation_id = installation.get('id')
         account = installation.get('account', {})
         action = self.payload.get('action')
         repositories = self.payload.get('repositories', [])
+
+        current_app.logger.info(
+            "Extracted installation data",
+            extra={
+                'installation_id': installation_id,
+                'account': account,
+                'action': action,
+                'repository_count': len(repositories)
+            }
+        )
 
         # Only handle new installations
         if action != 'created':

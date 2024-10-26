@@ -181,14 +181,25 @@ def webhook(service: str) -> Dict[str, Any]:
                     'handler_class': handler.__class__.__name__
                 }
             )
+
+            current_app.logger.info("Initializing service manager for installation")
             try:
                 # Initialize service connection manager
+                current_app.logger.info("Creating encryption instance")
                 encryption = CredentialEncryption(current_app.config['SECRET_KEY'])
+                
+                current_app.logger.info("Creating service manager instance")
                 service_manager = ServiceConnectionManager(current_app.db.session, encryption)
                 
+                current_app.logger.info("Calling handle_installation_event")
                 connection = handler.handle_installation_event(
                     db=current_app.db.session,
                     service_manager=service_manager
+                )
+                
+                current_app.logger.info(
+                    "Installation handler completed",
+                    extra={'connection_created': connection is not None}
                 )
                 
                 current_app.logger.info(
