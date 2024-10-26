@@ -17,13 +17,18 @@ def handle_installation_event(db: Session, payload: Dict[str, Any]) -> Optional[
     installation_id = installation.get('id')
     account = installation.get('account', {})
     action = payload.get('action')
+    repositories = payload.get('repositories', [])
     
     current_app.logger.info(
         "Handling installation event",
         extra={
             'installation_id': installation_id,
             'account': account,
-            'action': action
+            'action': action,
+            'repository_count': len(repositories),
+            'repository_names': [repo.get('full_name') for repo in repositories],
+            'permissions': installation.get('permissions'),
+            'events': installation.get('events')
         }
     )
     

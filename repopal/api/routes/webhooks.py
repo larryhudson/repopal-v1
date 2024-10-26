@@ -69,6 +69,19 @@ def webhook(service: str) -> Dict[str, Any]:
                 'installation_id': request.json.get('installation', {}).get('id', 'unknown')
             }
         )
+
+        # Special handling for installation events
+        event_type = request.headers.get('X-GitHub-Event')
+        if event_type == 'installation':
+            current_app.logger.info(
+                "Processing GitHub App installation event",
+                extra={
+                    'action': request.json.get('action'),
+                    'installation_id': request.json.get('installation', {}).get('id'),
+                    'account': request.json.get('installation', {}).get('account', {}).get('login'),
+                    'repositories': [repo.get('full_name') for repo in request.json.get('repositories', [])]
+                }
+            )
         
         # Log raw request data for debugging
         current_app.logger.debug(
