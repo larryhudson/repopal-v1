@@ -47,7 +47,7 @@ def health():
 
 @webhooks_bp.route('/webhooks/<service>', methods=['POST'])
 @limiter.limit("100/minute")
-async def webhook(service: str) -> Dict[str, Any]:
+def webhook(service: str) -> Dict[str, Any]:
     """Generic webhook handler for all services"""
     try:
         # Log incoming webhook details

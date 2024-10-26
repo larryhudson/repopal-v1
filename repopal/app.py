@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from flask import Flask, render_template
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-
 from flask_session import Session
 from repopal.api import api
 
