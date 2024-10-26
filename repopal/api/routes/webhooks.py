@@ -17,6 +17,16 @@ webhooks_bp = Blueprint('webhooks', __name__)
 def webhook(service: str) -> Dict[str, Any]:
     """Generic webhook handler for all services"""
     try:
+        # Log incoming webhook details
+        current_app.logger.info(
+            "Received webhook",
+            extra={
+                'service': service,
+                'headers': dict(request.headers),
+                'payload': request.json
+            }
+        )
+
         # Check rate limits
         if not current_app.limiter.check():
             raise RateLimitError("Rate limit exceeded")
@@ -73,7 +83,14 @@ def webhook(service: str) -> Dict[str, Any]:
     except Exception as e:
         current_app.logger.error(
             "Webhook processing failed",
-            extra={'error': str(e)}
+            extra={
+                'error': str(e),
+                'error_type': type(e).__name__,
+                'service': service,
+                'headers': dict(request.headers),
+                'payload': request.json,
+                'traceback': current_app.logger.exception(e)
+            }
         )
         return jsonify({
             "error": "Internal server error",
