@@ -59,17 +59,22 @@ def init_webhook_handlers(app):
 
 import logging
 
+
 class SafeFormatter(logging.Formatter):
     """Custom formatter that safely handles missing extras"""
+
     def format(self, record):
         # Get extras if they exist
-        extras = getattr(record, 'extra', {})
+        extras = getattr(record, "extra", {})
         # Add formatted extras to the record if present
         if extras:
-            record.extras_str = ' - ' + ' - '.join(f'{k}={v}' for k, v in extras.items())
+            record.extras_str = " - " + " - ".join(
+                f"{k}={v}" for k, v in extras.items()
+            )
         else:
-            record.extras_str = ''
+            record.extras_str = ""
         return super().format(record)
+
 
 # Configure root logger
 logging.basicConfig(level=logging.DEBUG)
@@ -83,7 +88,7 @@ limiter = Limiter(
 )
 
 # Configure webhook logger
-logger = logging.getLogger('repopal.webhooks')
+logger = logging.getLogger("repopal.webhooks")
 logger.setLevel(logging.DEBUG)
 
 # Remove any existing handlers
@@ -92,7 +97,7 @@ for handler in logger.handlers[:]:
 
 # Create a formatter that safely includes extra fields
 formatter = SafeFormatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s%(extras_str)s'
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s%(extras_str)s"
 )
 
 # Add console handler with safe formatter
@@ -135,8 +140,8 @@ def webhook(service: str) -> Dict[str, Any]:
             f"Received {service} webhook",
             extra={
                 "service": service,
-                "event_type": request.headers.get("X-GitHub-Event", "unknown"),
-                "delivery_id": request.headers.get("X-GitHub-Delivery", "unknown"),
+                "event_type": request.headers.get("X-Github-Event", "unknown"),
+                "delivery_id": request.headers.get("X-Github-Delivery", "unknown"),
                 "sender": request.json.get("sender", {}).get("login", "unknown"),
                 "repository": request.json.get("repository", {}).get(
                     "full_name", "unknown"
@@ -149,7 +154,7 @@ def webhook(service: str) -> Dict[str, Any]:
         )
 
         # Special handling for installation events
-        event_type = request.headers.get("X-GitHub-Event")
+        event_type = request.headers.get("X-Github-Event")
         if event_type == "installation":
             current_app.logger.info(
                 "Processing GitHub App installation event",
@@ -185,24 +190,24 @@ def webhook(service: str) -> Dict[str, Any]:
             extra={
                 "service": service,
                 "available_handlers": list(WebhookHandlerFactory._handlers.keys()),
-                "event_type": request.headers.get("X-GitHub-Event", "unknown"),
+                "event_type": request.headers.get("X-Github-Event", "unknown"),
                 "content_type": request.content_type,
             },
         )
 
         # Convert headers while preserving exact header names
         headers = {k: v for k, v in request.headers.items()}
-        
+
         current_app.logger.debug(
             "Processing webhook headers",
             extra={
-                'raw_headers': dict(request.headers),
-                'processed_headers': headers,
-                'github_event': headers.get('X-GitHub-Event'),
-                'content_type': headers.get('Content-Type')
-            }
+                "raw_headers": dict(request.headers),
+                "processed_headers": headers,
+                "github_event": headers.get("X-GitHub-Event"),
+                "content_type": headers.get("Content-Type"),
+            },
         )
-        
+
         handler = WebhookHandlerFactory.create(
             service=service, headers=headers, payload=request.json
         )
@@ -226,7 +231,7 @@ def webhook(service: str) -> Dict[str, Any]:
             )
 
         # Convert to standardized event
-        event = handler.standardize_event()
+        # event = handler.standardize_event()
 
         # Handle installation events specially
         if event_type == "installation":
