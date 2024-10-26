@@ -1,5 +1,7 @@
 """Webhook routes for RepoPal"""
 
+import time
+import asyncio
 from flask import Blueprint, jsonify, request, current_app
 from typing import Dict, Any
 from flask_limiter import Limiter
@@ -7,6 +9,7 @@ from flask_limiter.util import get_remote_address
 from repopal.webhooks.handlers import WebhookHandlerFactory, GitHubWebhookHandler, SlackWebhookHandler
 from ..exceptions import WebhookError, RateLimitError
 from repopal.core.tasks import process_webhook_event
+from repopal.services.github_installation import handle_installation_event
 
 # Register webhook handlers
 WebhookHandlerFactory.register('github', GitHubWebhookHandler)
@@ -44,7 +47,7 @@ def health():
 
 @webhooks_bp.route('/webhooks/<service>', methods=['POST'])
 @limiter.limit("100/minute")
-def webhook(service: str) -> Dict[str, Any]:
+async def webhook(service: str) -> Dict[str, Any]:
     """Generic webhook handler for all services"""
     try:
         # Log incoming webhook details
