@@ -16,6 +16,7 @@ from repopal.api.exceptions import (
 )
 from repopal.core.tasks import process_webhook_event
 from repopal.core.types.events import StandardizedEvent, RepositoryContext
+from repopal.services.github_installation import handle_installation_event
 
 class WebhookHandler(ABC):
     """Base class for webhook handlers"""
@@ -144,6 +145,7 @@ class GitHubWebhookHandler(WebhookHandler):
         'issue_comment',
         'pull_request',
         'push',
+        'installation',
     }
     
     def __init__(self, headers: Dict[str, str], payload: Dict[str, Any]):
