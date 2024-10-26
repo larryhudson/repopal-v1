@@ -81,6 +81,14 @@ def webhook(service: str) -> Dict[str, Any]:
         
         # Handle installation events specially
         if event_type == 'installation':
+            current_app.logger.info(
+                "Processing installation event",
+                extra={
+                    'action': request.json.get('action'),
+                    'installation_id': request.json.get('installation', {}).get('id'),
+                    'account': request.json.get('installation', {}).get('account', {}).get('login')
+                }
+            )
             connection = handle_installation_event(
                 db=current_app.db.session,
                 payload=request.json
@@ -88,7 +96,17 @@ def webhook(service: str) -> Dict[str, Any]:
             if connection:
                 current_app.logger.info(
                     "Created service connection for installation",
-                    extra={'connection_id': str(connection.id)}
+                    extra={
+                        'connection_id': str(connection.id),
+                        'service_type': connection.service_type.value,
+                        'status': connection.status.value,
+                        'settings': connection.settings
+                    }
+                )
+            else:
+                current_app.logger.warning(
+                    "Failed to create service connection for installation",
+                    extra={'payload': request.json}
                 )
         
         # Record start time
