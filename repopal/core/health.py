@@ -87,65 +87,67 @@ class GitHubHealthCheck(ServiceHealthCheck):
                 message=f"Health check failed: {str(e)}"
             )
 
-class SlackHealthCheck(ServiceHealthCheck):
-    """Health check for Slack workspace connections"""
-    
-    async def check_health(self, connection_id: str) -> HealthCheckResult:
-        """Check Slack workspace connection health"""
-        try:
-            # Get Slack client for this connection
-            slack = await get_slack_client(connection_id)
-            
-            # Test auth
-            auth_test = await slack.auth_test()
-            if not auth_test["ok"]:
-                return HealthCheckResult(
-                    status=HealthStatus.UNHEALTHY,
-                    message="Invalid Slack credentials"
-                )
-                
-            # Check required scopes
-            required_scopes = {"chat:write", "channels:read", "channels:join"}
-            actual_scopes = set(auth_test["scopes"])
-            missing_scopes = required_scopes - actual_scopes
-            
-            if missing_scopes:
-                return HealthCheckResult(
-                    status=HealthStatus.DEGRADED,
-                    message=f"Missing required scopes: {missing_scopes}",
-                    details={"missing_scopes": list(missing_scopes)}
-                )
-                
-            # Test basic API operation
-            try:
-                await slack.conversations_list(limit=1)
-            except Exception as e:
-                return HealthCheckResult(
-                    status=HealthStatus.UNHEALTHY,
-                    message=f"API test failed: {str(e)}"
-                )
-                
-            return HealthCheckResult(
-                status=HealthStatus.HEALTHY,
-                message="Slack connection healthy",
-                details={
-                    "bot_id": auth_test["bot_id"],
-                    "team_id": auth_test["team_id"]
-                }
-            )
-            
-        except Exception as e:
-            return HealthCheckResult(
-                status=HealthStatus.UNHEALTHY,
-                message=f"Health check failed: {str(e)}"
-            )
+# TODO: Implement SlackHealthCheck when slack service is ready
+# class SlackHealthCheck(ServiceHealthCheck):
+#     """Health check for Slack workspace connections"""
+#     
+#     async def check_health(self, connection_id: str) -> HealthCheckResult:
+#         """Check Slack workspace connection health"""
+#         try:
+#             # Get Slack client for this connection
+#             slack = await get_slack_client(connection_id)
+#             
+#             # Test auth
+#             auth_test = await slack.auth_test()
+#             if not auth_test["ok"]:
+#                 return HealthCheckResult(
+#                     status=HealthStatus.UNHEALTHY,
+#                     message="Invalid Slack credentials"
+#                 )
+#                 
+#             # Check required scopes
+#             required_scopes = {"chat:write", "channels:read", "channels:join"}
+#             actual_scopes = set(auth_test["scopes"])
+#             missing_scopes = required_scopes - actual_scopes
+#             
+#             if missing_scopes:
+#                 return HealthCheckResult(
+#                     status=HealthStatus.DEGRADED,
+#                     message=f"Missing required scopes: {missing_scopes}",
+#                     details={"missing_scopes": list(missing_scopes)}
+#                 )
+#                 
+#             # Test basic API operation
+#             try:
+#                 await slack.conversations_list(limit=1)
+#             except Exception as e:
+#                 return HealthCheckResult(
+#                     status=HealthStatus.UNHEALTHY,
+#                     message=f"API test failed: {str(e)}"
+#                 )
+#                 
+#             return HealthCheckResult(
+#                 status=HealthStatus.HEALTHY,
+#                 message="Slack connection healthy",
+#                 details={
+#                     "bot_id": auth_test["bot_id"],
+#                     "team_id": auth_test["team_id"]
+#                 }
+#             )
+#             
+#         except Exception as e:
+#             return HealthCheckResult(
+#                 status=HealthStatus.UNHEALTHY,
+#                 message=f"Health check failed: {str(e)}"
+#             )
 
 class HealthCheckFactory:
     """Creates appropriate health checker for service type"""
     
     _checkers = {
         "github_app": GitHubHealthCheck,
-        "slack": SlackHealthCheck
+        # TODO: Add back when slack service is implemented
+        # "slack": SlackHealthCheck
     }
     
     @classmethod
