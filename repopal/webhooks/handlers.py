@@ -3,6 +3,13 @@
 from abc import ABC, abstractmethod
 from flask import request, jsonify, current_app
 from typing import Dict, Any, Optional, Type
+from sqlalchemy.orm import Session
+from repopal.core.service_manager import ServiceConnectionManager
+from repopal.models.service_connection import (
+    ServiceConnection,
+    ServiceType,
+    ConnectionStatus
+)
 import hmac
 import hashlib
 from datetime import datetime
