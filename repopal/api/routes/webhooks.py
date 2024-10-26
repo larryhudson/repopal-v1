@@ -49,11 +49,17 @@ def health():
 def webhook(service: str) -> Dict[str, Any]:
     """Generic webhook handler for all services"""
     try:
-        # Log incoming webhook details
+        # Log detailed incoming webhook information
         current_app.logger.info(
             "Received webhook",
             extra={
                 'service': service,
+                'event_type': request.headers.get('X-GitHub-Event', 'unknown'),
+                'delivery_id': request.headers.get('X-GitHub-Delivery', 'unknown'),
+                'sender': request.json.get('sender', {}).get('login', 'unknown'),
+                'repository': request.json.get('repository', {}).get('full_name', 'unknown'),
+                'action': request.json.get('action', 'unknown'),
+                'installation_id': request.json.get('installation', {}).get('id', 'unknown'),
                 'headers': dict(request.headers),
                 'payload': request.json
             }
