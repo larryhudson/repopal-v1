@@ -1,7 +1,6 @@
 """Webhook routes for RepoPal"""
 
 import time
-import asyncio
 from flask import Blueprint, jsonify, request, current_app
 from typing import Dict, Any
 from flask_limiter import Limiter

@@ -106,7 +106,7 @@ async def check_connection_health(
     autoretry_for=(PipelineStateError,),
     name="core.update_pipeline_state"
 )
-async def update_pipeline_state(
+def update_pipeline_state(
     self,
     pipeline_id: str,
     new_state: str,
