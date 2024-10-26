@@ -59,13 +59,17 @@ Copy the output into your `.env` file.
 
 ```bash
 pip install -r requirements.txt
-pip install python-dotenv
+pip install python-dotenv alembic
 ```
 
 ## 5. Initialize the Database
 
 ```bash
-flask db upgrade
+# Initialize Alembic if this is your first time
+alembic init migrations
+
+# Apply database migrations
+alembic upgrade head
 ```
 
 ## 6. Start Redis Server
