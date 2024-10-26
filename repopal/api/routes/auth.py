@@ -6,7 +6,9 @@ import requests
 from functools import wraps
 
 # Create auth blueprint
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint('auth', __name__, 
+                   template_folder='templates',
+                   url_prefix='/auth')
 
 def login_required(f):
     @wraps(f)
@@ -16,12 +18,12 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-@auth_bp.route('/login', methods=['GET'])
+@auth_bp.route('/login')
 def login():
     """Show login page"""
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
-@auth_bp.route('/auth/github', methods=['GET'])
+@auth_bp.route('/github')
 def github_login():
     """Initiate GitHub OAuth flow"""
     github_url = "https://github.com/login/oauth/authorize"
@@ -32,7 +34,7 @@ def github_login():
     }
     return redirect(f"{github_url}?{'&'.join(f'{k}={v}' for k,v in params.items())}")
 
-@auth_bp.route('/auth/github/callback', methods=['GET'])
+@auth_bp.route('/github/callback')
 def github_callback():
     """Handle GitHub OAuth callback"""
     code = request.args.get('code')
@@ -71,15 +73,15 @@ def github_callback():
 
     return redirect(url_for('auth.post_login'))
 
-@auth_bp.route('/auth/post-login', methods=['GET'])
+@auth_bp.route('/post-login')
 @login_required
 def post_login():
     """Handle post-login flow"""
-    return render_template('install.html', 
+    return render_template('auth/install.html',
                          username=session['username'],
                          app_id=current_app.config['GITHUB_APP_ID'])
 
-@auth_bp.route('/logout', methods=['GET'])
+@auth_bp.route('/logout')
 def logout():
     """Log out user"""
     session.clear()
