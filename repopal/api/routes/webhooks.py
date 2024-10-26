@@ -11,8 +11,14 @@ from repopal.core.tasks import process_webhook_event
 from repopal.services.github_installation import handle_installation_event
 
 # Register webhook handlers
+current_app.logger.info("Registering webhook handlers")
 WebhookHandlerFactory.register('github', GitHubWebhookHandler)
 WebhookHandlerFactory.register('slack', SlackWebhookHandler)
+current_app.logger.info("Webhook handlers registered successfully", 
+    extra={
+        'handlers': list(WebhookHandlerFactory._handlers.keys())
+    }
+)
 
 # Initialize rate limiter
 limiter = Limiter(

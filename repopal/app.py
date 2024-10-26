@@ -44,8 +44,12 @@ def create_app():
 
     db.init_app(app)
 
-    # Register the API blueprint
+    # Register blueprints
     app.register_blueprint(api, url_prefix="/api")
+    
+    # Import and register webhooks blueprint
+    from repopal.api.routes.webhooks import webhooks_bp
+    app.register_blueprint(webhooks_bp, url_prefix="/api")
 
     @app.route("/")
     def home():
