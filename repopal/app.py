@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from flask import Flask, render_template
 
 from flask_session import Session
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from repopal.api import api
 
 
@@ -27,6 +29,14 @@ def create_app():
 
     # Initialize Flask-Session
     Session(app)
+
+    # Initialize Flask-Limiter
+    limiter = Limiter(
+        app=app,
+        key_func=get_remote_address,
+        default_limits=["200 per day", "50 per hour"],
+        storage_uri="memory://"
+    )
 
     # Initialize SQLAlchemy
     from repopal.models import db

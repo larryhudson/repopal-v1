@@ -2,6 +2,8 @@
 
 from flask import Blueprint, jsonify, request, current_app
 from typing import Dict, Any
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from repopal.webhooks.handlers import WebhookHandlerFactory, GitHubWebhookHandler, SlackWebhookHandler
 from ..exceptions import WebhookError, RateLimitError
 from repopal.core.tasks import process_webhook_event
@@ -26,10 +28,6 @@ def webhook(service: str) -> Dict[str, Any]:
                 'payload': request.json
             }
         )
-
-        # Check rate limits
-        if not current_app.limiter.check():
-            raise RateLimitError("Rate limit exceeded")
             
         # Create and validate handler
         handler = WebhookHandlerFactory.create(
