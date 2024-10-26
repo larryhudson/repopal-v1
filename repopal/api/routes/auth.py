@@ -95,6 +95,17 @@ def github_callback():
     return redirect(url_for("api.auth.post_login"))
 
 
+@auth_bp.route("/github/installed")
+def github_installed():
+    """Handle GitHub App installation callback"""
+    installation_id = request.args.get("installation_id")
+    if installation_id:
+        # Store installation ID in session
+        session["installation_id"] = installation_id
+        return redirect(url_for("home"))
+    return jsonify({"error": "No installation ID provided"}), 400
+
+
 @auth_bp.route("/post-login")
 @login_required
 def post_login():
