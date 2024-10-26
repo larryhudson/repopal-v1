@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RepoPal - Install GitHub App</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-md w-96">
+        <h1 class="text-2xl font-bold mb-6 text-center">Welcome, {{ username }}!</h1>
+        <div class="space-y-4">
+            <p class="text-gray-600 text-center">Install RepoPal in your repositories to get started</p>
+            <a href="https://github.com/apps/{{ app_id }}/installations/new"
+               class="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Install RepoPal
+            </a>
+            <div class="text-center">
+                <a href="{{ url_for('auth.logout') }}" class="text-sm text-gray-500 hover:text-gray-700">
+                    Sign out
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
