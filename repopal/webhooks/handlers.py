@@ -197,7 +197,11 @@ class GitHubWebhookHandler(WebhookHandler):
         """Validate and return event type"""
         event_type = self.headers.get('X-GitHub-Event')
         if not event_type:
-            current_app.logger.error("No X-GitHub-Event header found", extra={'headers': self.headers})
+            # Format extras as string for better visibility
+            headers_str = ', '.join(f'{k}={v}' for k, v in self.headers.items())
+            current_app.logger.error(
+                f"No X-GitHub-Event header found - Available headers: {headers_str}"
+            )
             raise UnsupportedEventError("Missing X-GitHub-Event header")
             
         if event_type not in self.SUPPORTED_EVENTS and event_type != 'ping':

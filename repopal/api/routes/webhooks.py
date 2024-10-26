@@ -57,6 +57,14 @@ def init_webhook_handlers(app):
     )
 
 
+import logging
+
+# Configure logging to show extra fields
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(extra)s'
+)
+
 # Initialize rate limiter
 limiter = Limiter(
     key_func=get_remote_address,
@@ -64,6 +72,20 @@ limiter = Limiter(
     default_limits=["1000 per hour"],
     strategy="fixed-window",
 )
+
+# Ensure webhook logger shows extra fields
+logger = logging.getLogger('repopal.webhooks')
+logger.setLevel(logging.DEBUG)
+
+# Create a formatter that includes extra fields
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s - extra_fields=%(extra)s'
+)
+
+# Add a handler with the new formatter
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 # Create webhook blueprint with monitoring
 webhooks_bp = Blueprint("webhooks", __name__)
