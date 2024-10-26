@@ -13,3 +13,7 @@ class PipelineNotFoundError(PipelineError):
     def __init__(self, pipeline_id: str):
         self.pipeline_id = pipeline_id
         super().__init__(f"Pipeline not found: {pipeline_id}")
+
+class ServiceConnectionError(CoreError):
+    """Raised when there are issues with service connections"""
+    pass
