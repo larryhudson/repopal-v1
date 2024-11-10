@@ -203,7 +203,7 @@ def webhook(service: str) -> Dict[str, Any]:
             extra={
                 "raw_headers": dict(request.headers),
                 "processed_headers": headers,
-                "github_event": headers.get("X-GitHub-Event"),
+                "github_event": headers.get("X-Github-Event"),
                 "content_type": headers.get("Content-Type"),
             },
         )
@@ -262,9 +262,8 @@ def webhook(service: str) -> Dict[str, Any]:
 
                 current_app.logger.info("Creating service manager instance")
                 from repopal.extensions import db
-                service_manager = ServiceConnectionManager(
-                    db.session, encryption
-                )
+
+                service_manager = ServiceConnectionManager(db.session, encryption)
 
                 current_app.logger.info("Calling handle_installation_event")
                 connection = handler.handle_installation_event(

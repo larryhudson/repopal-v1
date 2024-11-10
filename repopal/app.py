@@ -2,8 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask, render_template
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+
 from flask_session import Session
 from repopal.api import api
 
@@ -18,7 +17,7 @@ def create_app():
     # Database configuration
     db_url = os.environ.get("DATABASE_URL", "sqlite:///repopal.db")
     app.logger.info(f"Configuring database with URL: {db_url}")
-    
+
     app.config.update(
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev"),
         SESSION_TYPE="filesystem",
@@ -45,9 +44,10 @@ def create_app():
 
 
     # Initialize extensions
-    from repopal.extensions import db, credential_encryption
     from flask_limiter import Limiter
     from flask_limiter.util import get_remote_address
+
+    from repopal.extensions import db
 
     # Initialize SQLAlchemy
     db.init_app(app)
@@ -63,9 +63,9 @@ def create_app():
 
     # Register blueprints
     app.register_blueprint(api, url_prefix="/api")
-    
+
     # Import and register webhooks blueprint
-    from repopal.api.routes.webhooks import webhooks_bp, init_webhook_handlers
+    from repopal.api.routes.webhooks import init_webhook_handlers, webhooks_bp
     app.register_blueprint(webhooks_bp, url_prefix="/api")
     init_webhook_handlers(app)
 

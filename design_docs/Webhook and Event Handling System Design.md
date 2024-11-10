@@ -46,24 +46,24 @@ def webhook_handler(service: str):
         validator = WebhookValidator()
         if not validator.validate_webhook(service, request):
             return jsonify({'error': 'Invalid signature'}), 401
-        
+
         # 3. Get appropriate service handler
         handler = ServiceHandlerFactory.create_handler(service)
-        
+
         # 4. Extract webhook data
         headers = dict(request.headers)
         payload = extract_payload(request)
-        
+
         # 5. Validate event type
         if not handler.validate_event_type(headers, payload):
             return jsonify({'error': 'Unsupported event type'}), 400
-        
+
         # 6. Convert to standardized event
         event = handler.standardize_event(headers, payload)
-        
+
         # 7. Initialize pipeline
         pipeline_id = initialize_pipeline(event)
-        
+
         # 8. Log and return response
         current_app.logger.info(
             "Webhook processed successfully",
@@ -73,12 +73,12 @@ def webhook_handler(service: str):
                 'pipeline_id': pipeline_id
             }
         )
-        
+
         return jsonify({
             'status': 'accepted',
             'pipeline_id': pipeline_id
         }), 202
-        
+
     except Exception as e:
         current_app.logger.error(
             "Webhook processing failed",
@@ -123,19 +123,19 @@ class RepositoryContext:
 
 class ServiceHandler(ABC):
     """Base class for service-specific handlers"""
-    
+
     @abstractmethod
-    def validate_event_type(self, headers: Dict[str, str], 
+    def validate_event_type(self, headers: Dict[str, str],
                           payload: Dict[str, Any]) -> bool:
         """Check if event type is supported"""
         pass
-    
+
     @abstractmethod
     def standardize_event(self, headers: Dict[str, str],
                          payload: Dict[str, Any]) -> StandardizedEvent:
         """Convert service payload to standard format"""
         pass
-    
+
     @abstractmethod
     def extract_repository_context(self, payload: Dict[str, Any]) -> RepositoryContext:
         """Get repository information from payload"""
@@ -148,26 +148,26 @@ class ServiceHandler(ABC):
 ```python
 class GitHubHandler(ServiceHandler):
     """Handles GitHub webhook events"""
-    
+
     SUPPORTED_EVENTS = {
         'issue_comment',
         'pull_request',
         'push',
     }
-    
+
     def validate_event_type(self, headers: Dict[str, str],
                           payload: Dict[str, Any]) -> bool:
-        event_type = headers.get('X-GitHub-Event')
+        event_type = headers.get('X-Github-Event')
         return event_type in self.SUPPORTED_EVENTS
-    
+
     def standardize_event(self, headers: Dict[str, str],
                          payload: Dict[str, Any]) -> StandardizedEvent:
         repo_context = self.extract_repository_context(payload)
-        
+
         return StandardizedEvent(
-            event_id=headers['X-GitHub-Delivery'],
+            event_id=headers['X-Github-Delivery'],
             service='github',
-            event_type=headers['X-GitHub-Event'],
+            event_type=headers['X-Github-Event'],
             repository=repo_context,
             user_request=self._extract_user_request(payload),
             created_at=datetime.utcnow(),
@@ -175,7 +175,7 @@ class GitHubHandler(ServiceHandler):
             raw_headers=headers,
             raw_payload=payload
         )
-    
+
     def _extract_user_request(self, payload: Dict[str, Any]) -> Optional[str]:
         """Extract user request from payload if present"""
         if 'comment' in payload:
@@ -197,20 +197,20 @@ class GitHubHandler(ServiceHandler):
 ```python
 def initialize_pipeline(event: StandardizedEvent) -> str:
     """Initialize processing pipeline with standardized event"""
-    
+
     # Create pipeline state entry
     pipeline = state_manager.create_pipeline(
         event_id=event.event_id,
         service=event.service,
         repository=f"{event.repository.owner}/{event.repository.name}"
     )
-    
+
     # Queue first task in pipeline
     process_webhook_event.delay(
         event=event,
         pipeline_id=pipeline.pipeline_id
     )
-    
+
     return pipeline.pipeline_id
 ```
 
@@ -224,13 +224,13 @@ def process_webhook_event(self, event: StandardizedEvent, pipeline_id: str):
             pipeline_id=pipeline_id,
             new_state=PipelineState.PROCESSING
         )
-        
+
         # Queue the command dispatch task
         return dispatch_command.delay(
             event=event,
             pipeline_id=pipeline_id
         )
-        
+
     except Exception as e:
         state_manager.update_pipeline_state(
             pipeline_id=pipeline_id,
@@ -247,7 +247,7 @@ def process_webhook_event(self, event: StandardizedEvent, pipeline_id: str):
 class WebhookError(Exception):
     """Base class for webhook errors"""
     status_code = 500
-    
+
 class InvalidSignatureError(WebhookError):
     status_code = 401
 
@@ -289,7 +289,7 @@ class RepositoryContextError(EventStandardizationError):
 class WebhookMetrics:
     def __init__(self, metrics_client):
         self.metrics = metrics_client
-    
+
     def record_webhook(self, service: str, status: str, duration: float):
         """Record webhook processing metrics"""
         self.metrics.timing(
@@ -300,7 +300,7 @@ class WebhookMetrics:
                 'status': status
             }
         )
-        
+
         self.metrics.increment(
             'webhook.received',
             tags={
@@ -315,7 +315,7 @@ class WebhookMetrics:
 class WebhookLogger:
     def __init__(self, logger):
         self.logger = logger
-    
+
     def log_webhook_received(self, service: str, event_type: str):
         self.logger.info(
             "Webhook received",
@@ -324,7 +324,7 @@ class WebhookLogger:
                 'event_type': event_type
             }
         )
-    
+
     def log_event_standardized(self, event: StandardizedEvent):
         self.logger.info(
             "Event standardized",
