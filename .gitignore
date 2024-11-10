@@ -93,3 +93,9 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# Private Keys
+*.pem
+*.key
+*.keystore
+*private-key*
